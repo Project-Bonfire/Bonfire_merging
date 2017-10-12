@@ -1,0 +1,1 @@
+python simulate.py -D 2 -credit_based_FC -packet_drop -FC -NI_Test -SHMU -Rand 0.035 -PS 16 16 -sim 200000 -end 350000 -lat

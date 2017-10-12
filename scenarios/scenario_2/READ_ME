@@ -1,0 +1,1 @@
+python simulate.py -D 4 -credit_based_FC -Rand 0.01 PS 8 8 -sim 10000 -end 11000
