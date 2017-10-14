@@ -2,6 +2,7 @@
 *.pyc
 *.bak
 *.png
+.idea
 
 xgui
 component.xml
