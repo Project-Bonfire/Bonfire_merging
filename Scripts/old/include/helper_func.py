@@ -41,7 +41,7 @@ def print_msg(message_severity, message_content):
         print BOLD + "INFO: " + ENDC + message_content
 
     if message_severity == MSG_WARN:
-        print BOLD + WARNING + "WARNING: " + ENDC + message_content
+        print BOLD + WARNING + "COLOR_YELLOW: " + ENDC + message_content
 
     if message_severity == MSG_ERROR:
         print BOLD + FAIL + "ERROR: " + ENDC + message_content

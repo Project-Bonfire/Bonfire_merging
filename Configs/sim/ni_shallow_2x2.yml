@@ -1,0 +1,4 @@
+network-size: 2
+designs:
+    - Router_32_bit_credit_based_packet_drop_classifier_SHMU
+    - NI_FT_shallow

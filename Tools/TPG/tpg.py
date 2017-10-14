@@ -127,7 +127,7 @@ if verbose:
 	print '\033[92m'+"INFO: "+'\033[0m'+"Individual lists are prepared for input sets..."
 	print '\033[92m'+"INFO: "+'\033[0m'+"Final output size:", output_size
 	if output_size > 100000000:
-		print '\033[91m'+ "WARNING: "+'\033[0m'+"your final output size is big... you might run out of disc space!"
+		print '\033[91m'+ "COLOR_YELLOW: "+'\033[0m'+"your final output size is big... you might run out of disc space!"
 	print 
 	print '\033[92m'+"INFO: "+'\033[0m'+"Starting making product of the lists... This might take a while!"
 
