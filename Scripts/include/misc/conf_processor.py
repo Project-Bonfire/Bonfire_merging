@@ -8,16 +8,9 @@ https://www.gnu.org/licenses/gpl-3.0.en.html
 """
 
 import sys
+import yaml
 from Scripts.include.misc.helper_func import *
 from Scripts.include.misc.package import *
-
-try:
-    import yaml
-
-except ImportError as e:
-    yaml = None
-    print_msg(MSG_ERROR, 'Module pyyaml is not installed. Run \'pip3 install pyyaml\' to install it')
-    raise ImportError(e)
 
 
 def extract_config_path(args):
@@ -42,6 +35,14 @@ def extract_config_path(args):
     return directory
 
 
-# def read_config(config_dir, config_name):
-#     config = yaml.load(os.pathconfig_name)
+def read_config(config_dir, config_name):
 
+    config_file = os.path.join(config_dir, config_name + '.yml')
+    config = yaml.load(open(config_file))
+    print(config)
+
+    if 'designs' in config and config['designs'] is not None:
+        print(config['designs'])
+
+    else:
+        raise ValueError('No designs specified in loaded configuration! (' + config_file + ')')

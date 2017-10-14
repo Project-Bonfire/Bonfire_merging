@@ -14,10 +14,19 @@ import logging
 import time
 
 from Scripts.include.misc.helper_func import *
-from Scripts.include.misc.conf_processor import *
 from Scripts.include.misc.Logger import Logger
 from Scripts.include.misc import package
 from Scripts.include.misc import arg_parser
+
+try:
+    import yaml
+
+except ImportError as e:
+    yaml = None
+    print_msg(MSG_ERROR, 'Module pyyaml is not installed. Run \'pip3 install pyyaml\' to install it')
+    raise ImportError(e)
+
+from Scripts.include.misc.conf_processor import *
 
 
 def main():
@@ -34,8 +43,8 @@ def main():
         check_dir(package.LOG_DIR, True, args.debug)
         check_dir(package.TRACE_DIR, True, args.debug)
 
-    except (OSError, ValueError) as e:
-        print_msg(MSG_ERROR, str(e))
+    except (OSError, ValueError) as err:
+        print_msg(MSG_ERROR, str(err))
         return package.FAILURE
 
     # Just for getting a copy of the current console
@@ -44,6 +53,23 @@ def main():
     # Setup Logging
     logging.basicConfig(filename=package.LOG_DIR + '/Logging_Log_' + str(time.time()) + '.log', level=logging.DEBUG)
     logging.info('Logging started...')
+
+    conf_dir = extract_config_path(args)
+
+    try:
+        read_config(conf_dir, args.simulate)
+
+    except FileNotFoundError as err:
+        print_msg(MSG_ERROR, 'Cannot open config file: ' + str(err))
+        return package.FAILURE
+
+    except yaml.scanner.ScannerError as err:
+        print_msg(MSG_ERROR, 'Syntax error while reading config file: \n' + str(err))
+        return package.FAILURE
+
+    except ValueError as err:
+        print_msg(MSG_ERROR, str(err))
+        return package.FAILURE
 
     return package.SUCCESS
 
