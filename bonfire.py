@@ -17,6 +17,7 @@ from Scripts.include.misc.helper_func import *
 from Scripts.include.misc.Logger import Logger
 from Scripts.include.misc import package
 from Scripts.include.misc import arg_parser
+from Scripts.include.misc.process_conf import *
 
 try:
     import yaml
@@ -26,7 +27,6 @@ except ImportError as e:
     print_msg(MSG_ERROR, 'Module pyyaml is not installed. Run \'pip3 install pyyaml\' to install it')
     raise ImportError(e)
 
-from Scripts.include.misc.conf_processor import *
 
 
 def main():
@@ -54,10 +54,11 @@ def main():
     logging.basicConfig(filename=package.LOG_DIR + '/Logging_Log_' + str(time.time()) + '.log', level=logging.DEBUG)
     logging.info('Logging started...')
 
-    conf_dir = extract_config_path(args)
+    config_file = extract_config_path(args)
 
     try:
-        read_config(conf_dir, args.simulate)
+        config = read_config(config_file, True)
+        print(config)
 
     except FileNotFoundError as err:
         print_msg(MSG_ERROR, 'Cannot open config file: ' + str(err))

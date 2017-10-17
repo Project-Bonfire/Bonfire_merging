@@ -45,6 +45,18 @@ SIM_CONF_DIR = CONFIG_DIR + '/sim'
 ASIC_CONF_DIR = CONFIG_DIR + '/asic'
 FPGA_CONF_DIR = CONFIG_DIR + '/fpga'
 
+TOP_LEVEL_YAML_LISTS = (
+    'simulation_config',
+    'network_template',
+    'tb_template',
+    'designs'
+)
+
+SIMULATION_CONFIG_PARAMS = (
+    'network_size',
+    'simulation_time'
+)
+
 # # Subfolders
 # SCRIPTS_DIR = PROJECT_ROOT + '/Scripts'
 # TEST_DIR = PROJECT_ROOT + '/Test'
