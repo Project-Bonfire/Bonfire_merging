@@ -9,6 +9,10 @@ https://www.gnu.org/licenses/gpl-3.0.en.html
 
 import os
 
+EXEC_TYPE_SIMUL = 0
+EXEC_TYPE_ASIC = 1
+EXEC_TYPE_FPGA = 2
+
 FAILURE = 1
 SUCCESS = 0
 
@@ -41,21 +45,26 @@ TRACE_DIR = TMP_DIR + '/traces'
 # Configurations
 CONFIG_DIR = PROJECT_ROOT + '/Configs'
 COMPONENT_CONF_DIR = CONFIG_DIR + '/components'
+ROUTERS_CONF_DIR = COMPONENT_CONF_DIR + '/routers'
+NI_PE_CONF_DIR = COMPONENT_CONF_DIR + '/ni_pe'
+PACKET_INJECTOR_CONF_DIR = COMPONENT_CONF_DIR + '/packet_injectors'
 SIM_CONF_DIR = CONFIG_DIR + '/sim'
 ASIC_CONF_DIR = CONFIG_DIR + '/asic'
 FPGA_CONF_DIR = CONFIG_DIR + '/fpga'
 
-TOP_LEVEL_YAML_LISTS = (
+TOP_LEVEL_SIMUL_YAML_LISTS = (
     'simulation_config',
-    'network_template',
-    'tb_template',
-    'designs'
+    'router',
+    'ni_pe',
 )
 
 SIMULATION_CONFIG_PARAMS = (
     'network_size',
     'simulation_time'
 )
+
+# Design related files
+RTL_DIR = PROJECT_ROOT + '/RTL'
 
 # # Subfolders
 # SCRIPTS_DIR = PROJECT_ROOT + '/Scripts'

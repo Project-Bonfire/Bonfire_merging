@@ -9,3 +9,4 @@ files:
     - Router/LBDR_packet_drop.vhd,
     - Router/xbar.vhd,
     - Router/Router_32_bit_credit_based_packet_drop_classifier_SHMU.vhd
+    - test.vhd

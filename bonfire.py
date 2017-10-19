@@ -13,11 +13,10 @@ import sys
 import logging
 import time
 
-from Scripts.include.misc.helper_func import *
-from Scripts.include.misc.Logger import Logger
-from Scripts.include.misc import package
 from Scripts.include.misc import arg_parser
-from Scripts.include.misc.process_conf import *
+from Scripts.include.misc.Logger import Logger
+from Scripts.include.parser.conf_parser import *
+from Scripts.include.parser.vhdl_parser import *
 
 try:
     import yaml
@@ -58,11 +57,10 @@ def main():
     logging.basicConfig(filename=package.LOG_DIR + '/Logging_Log_' + str(time.time()) + '.log', level=logging.DEBUG)
     logging.info('Logging started...')
 
-    config_file = extract_config_path(args)
+    config_file, exec_mode = extract_config_path(args)
 
     try:
-        config = read_config(config_file, True)
-        print(config)
+        config = read_config(config_file, exec_mode, True, args.debug)
 
     except FileNotFoundError as err:
         print_msg(MSG_ERROR, 'Cannot open config file: ' + str(err))
@@ -72,7 +70,14 @@ def main():
         print_msg(MSG_ERROR, 'Syntax error while reading config file: \n' + str(err))
         return package.FAILURE
 
-    except ValueError as err:
+    except (ValueError, RuntimeError) as err:
+        print_msg(MSG_ERROR, str(err))
+        return package.FAILURE
+
+    # Parse the VHDL files for building the NW file and the TB
+    try:
+        parse_vhdl(config)
+    except FileNotFoundError as err:
         print_msg(MSG_ERROR, str(err))
         return package.FAILURE
 

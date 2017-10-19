@@ -6,6 +6,6 @@ network_template: ni_template
 
 tb_template: ni_tb_template
 
-designs:
-    - Router_32_bit_credit_based_packet_drop_classifier_SHMU
-    - NI_FT_shallow
+router: Router_32_bit_credit_based_packet_drop_classifier_SHMU
+
+ni_pe: NI_FT_shallow
