@@ -43,4 +43,7 @@ def parse():
     # Parse the arguments
     args = parser.parse_args()
 
+    if args.asic or args.fpga:
+        raise ValueError('Requested functionality not yet implemented')
+
     return args

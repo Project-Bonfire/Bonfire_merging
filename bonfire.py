@@ -28,7 +28,6 @@ except ImportError as e:
     raise ImportError(e)
 
 
-
 def main():
     """
     Main function.
@@ -36,7 +35,12 @@ def main():
     """
 
     # Argument parsing
-    args = arg_parser.parse()
+    try:
+        args = arg_parser.parse()
+
+    except ValueError as err:
+        print_msg(MSG_ERROR, str(err))
+        return package.FAILURE
 
     # Check if the temporary folder exists. If it does, clear it, if not, create it.
     try:
