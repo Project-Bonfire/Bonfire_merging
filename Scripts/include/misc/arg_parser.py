@@ -3,8 +3,18 @@ Library for parsing the arguments of the script
 
 Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
 
-Release under the GPLv3 license:
-https://www.gnu.org/licenses/gpl-3.0.en.html
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import argparse
@@ -29,8 +39,8 @@ def parse():
     exec_type_group.add_argument('--simulate', '-s', type=str, required=False, metavar='DESIGN_CONFIG',
                                  help='Simulate the design stored in DESIGN_CONFIG')
 
-    exec_type_group.add_argument('--asic', '-a', type=str, required=False, metavar='DESIGN_CONFIG',
-                                 help='Synthesize design stored in DESIGN_CONFIG for ASIC ' +
+    exec_type_group.add_argument('--synth', '-s', type=str, required=False, metavar='DESIGN_CONFIG',
+                                 help='Synthesize design stored in DESIGN_CONFIG ' +
                                       colorize_text(True, False, 'NOT IMPLEMENTED YET', package.COLOR_RED))
 
     exec_type_group.add_argument('--fpga', '-f', type=str, required=False, metavar='DESIGN_CONFIG',
