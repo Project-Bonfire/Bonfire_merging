@@ -34,9 +34,9 @@ def extract_config_path(args):
         config_name = args.simulate
         exec_mode = package.EXEC_TYPE_SIMUL
 
-    elif args.asic:
+    elif args.synth:
         config_dir = package.ASIC_CONF_DIR
-        config_name = args.asic
+        config_name = args.synth
         exec_mode = package.EXEC_TYPE_ASIC
 
     elif args.fpga:

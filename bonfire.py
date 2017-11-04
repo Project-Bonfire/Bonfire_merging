@@ -87,6 +87,7 @@ def main():
     # Parse the VHDL files for building the NW file and the TB
     try:
         parse_vhdl(config)
+
     except FileNotFoundError as err:
         print_msg(MSG_ERROR, str(err))
         return package.FAILURE

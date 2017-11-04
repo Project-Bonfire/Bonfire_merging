@@ -17,69 +17,45 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import re
+from antlr4 import *
+from Scripts.include.parser.vhdl.vhdlLexer import vhdlLexer
+from Scripts.include.parser.vhdl.vhdlParser import vhdlParser
+from Scripts.include.antlr.vhdl_convert_listener import VHDLConvertListener
 from Scripts.include.misc.helper_func import *
 from Scripts.include.misc.package import *
 
-STATE_OUTSIDE_ENTITY = 0
-STATE_INSIDE_ENTITY = 1
-STATE_INSIDE_GENERIC = 2
-STATE_INSIDE_PORT = 3
 
+def parse_vhd_file(vhd_file):
 
-def parse_entity(file_contents):
-    # Find the entity block
-    lines = file_contents.splitlines()
+    # Read the input file
+    input_file = FileStream(vhd_file)
 
-    state = STATE_OUTSIDE_ENTITY
+    print_msg(MSG_BLUE_INFO, 'Parsing ' + vhd_file)
+    # Build a lexer
+    lexer = vhdlLexer(input_file)
 
-    component_name = ''
-    generics = list()
+    # Run Lexer on the file to generate the token string
+    stream = CommonTokenStream(lexer)
 
-    for line in lines:
+    # Parse the token stream
+    parser = vhdlParser(stream)
 
-        if state == STATE_OUTSIDE_ENTITY:
-            if re.match('^\s*entity', line):
-                state = STATE_INSIDE_ENTITY
-                component_name = line.split()[1]
+    # Create a parse tree wit the entire file as root node
+    tree = parser.design_file()
 
-        elif state == STATE_INSIDE_ENTITY:
-            if re.match('^\s*generic', line):
-                state = STATE_INSIDE_GENERIC
-
-        elif state == STATE_INSIDE_GENERIC:
-            result = re.search('^\s*[a-zA-Z0-9_]+\s*:\s*[a-zA-Z0-9_ ()]+', line)
-            if result:
-                print(result.group())
-
-        if re.match('^\s*port', line):
-            state = STATE_INSIDE_PORT
-
-    print(component_name)
-    print(generics)
-
-
-def parse_file(top_module_file):
-    vhdl_file = os.path.join(package.RTL_DIR, top_module_file)
-
-    vhdl_parts = dict()
-
-    with open(vhdl_file) as vhdl_top_module:
-        file_contents = vhdl_top_module.read()
-
-    parse_entity(file_contents)
-    # print(file_contents[0])
-
-    # print(file_contents)
-    return 0
+    # Walk the tree in order to parse the CSV file
+    listener = VHDLConvertListener()
+    walker = ParseTreeWalker()
+    walker.walk(listener, tree)
 
 
 def parse_vhdl(config):
 
     # We assume the last file in the list to be the top module for the unit
-    routers_top_module = config['router'][-1]
+    routers_top_module = os.path.join(ROUTER_RTL_DIR, config['router'][-1])
     ni_pe_top_module = config['ni_pe'][-1]
     if 'packet_injector' in config:
         packet_injector_top_module = config['packet_injector'][-1]
 
-    print(parse_file(routers_top_module))
+    print(parse_vhd_file(routers_top_module))
+

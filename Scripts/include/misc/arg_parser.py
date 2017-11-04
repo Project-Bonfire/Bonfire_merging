@@ -39,7 +39,7 @@ def parse():
     exec_type_group.add_argument('--simulate', '-s', type=str, required=False, metavar='DESIGN_CONFIG',
                                  help='Simulate the design stored in DESIGN_CONFIG')
 
-    exec_type_group.add_argument('--synth', '-s', type=str, required=False, metavar='DESIGN_CONFIG',
+    exec_type_group.add_argument('--synth', '-a', type=str, required=False, metavar='DESIGN_CONFIG',
                                  help='Synthesize design stored in DESIGN_CONFIG ' +
                                       colorize_text(True, False, 'NOT IMPLEMENTED YET', package.COLOR_RED))
 
@@ -53,7 +53,7 @@ def parse():
     # Parse the arguments
     args = parser.parse_args()
 
-    if args.asic or args.fpga:
+    if args.synth or args.fpga:
         raise ValueError('Requested functionality not yet implemented')
 
     return args
