@@ -12,11 +12,11 @@ entity router_credit_based is
         Cx_rst : integer := 10;
         NoC_size: integer := 4
     );
-		
+
     port (
     reset, clk: in std_logic;
 
-    Rxy_reconf: in  std_logic_vector(7 downto 0);
+    Rxy_reconf: in  std_logic_vector(7 downto 0) := "00000000" + '1';
     Reconfig : in std_logic
     );
 end router_credit_based;

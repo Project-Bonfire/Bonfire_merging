@@ -17,37 +17,77 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from antlr4 import *
-from Scripts.include.parser.vhdl.vhdlLexer import vhdlLexer
-from Scripts.include.parser.vhdl.vhdlParser import vhdlParser
-from Scripts.include.antlr.vhdl_convert_listener import VHDLConvertListener
+import re
 from Scripts.include.misc.helper_func import *
 from Scripts.include.misc.package import *
 
 
-def parse_vhd_file(vhd_file):
+def extract_entity_components(vhd_file):
 
-    # Read the input file
-    input_file = FileStream(vhd_file)
+    buffer = ''
 
-    print_msg(MSG_BLUE_INFO, 'Parsing ' + vhd_file)
-    # Build a lexer
-    lexer = vhdlLexer(input_file)
+    with open(vhd_file, 'r') as vhd:
 
-    # Run Lexer on the file to generate the token string
-    stream = CommonTokenStream(lexer)
+        # Strip comments and newlines
+        for line in vhd:
+            line = line.partition('--')[0]
+            line = line.rstrip()
+            buffer = buffer + line
 
-    # Parse the token stream
-    parser = vhdlParser(stream)
+        # Change the file to all lower case for easier processing
+        buffer = buffer.lower()
 
-    # Create a parse tree wit the entire file as root node
-    tree = parser.design_file()
+        # Check if entity exists
+        if 'entity' not in buffer:
+            raise ValueError('Cannot find entity declaration in ' + vhd_file)
 
-    # Walk the tree in order to parse the CSV file
-    listener = VHDLConvertListener()
-    walker = ParseTreeWalker()
-    walker.walk(listener, tree)
+        if 'architecture' not in buffer:
+            raise ValueError('Cannot find architecture in ' + vhd_file)
 
+        # Extract the entity
+        entity = buffer.split('entity')[1].split('architecture')[0]
+
+        if 'is' not in entity:
+            raise ValueError('Malformed entity declaration in ' + vhd_file + ' (cannot find \'is\')')
+
+        if 'end' not in entity:
+            raise ValueError('Cannot find the end of entity in ' + vhd_file)
+
+        # Extract entity name and contents (port and generic definition)
+        entity_name, entity_contents = entity.split('end')[0].split('is')
+
+        # Locate generic and port declaration in the string
+        generic_loc = entity_contents.find('generic')
+        port_loc = entity_contents.find('port')
+
+        # Extract generic and port
+        if port_loc == -1:
+            raise ValueError('No port definition found int he entity of the file ' + vhd_file + 'stopping')
+
+        if generic_loc == -1:
+            generic = ''
+            port = entity_contents.split('port')[1]
+
+        else:
+            if generic_loc < port_loc:
+                generic, port = entity_contents.split('generic')[1].split('port')
+
+            else:
+                port, generic = entity_contents.split('port')[1].split('generic')
+
+
+        regex = re.compile('[a-z0-0_]+\s*:\s*[a-z]*\s+[a-z0-0_]+[\(\)0-9a-z ]*\s*:?=?\s*\d*')
+
+        generic_decl = regex.findall(generic)
+        port_decl = regex.findall(port)
+
+        # print(entity)
+        # print(entity_name)
+        # print(entity_contents)
+        # print('port')
+        # print(port)
+        print(generic_decl)
+        print(port_decl)
 
 def parse_vhdl(config):
 
@@ -57,5 +97,5 @@ def parse_vhdl(config):
     if 'packet_injector' in config:
         packet_injector_top_module = config['packet_injector'][-1]
 
-    print(parse_vhd_file(routers_top_module))
+    extract_entity_components(routers_top_module)
 

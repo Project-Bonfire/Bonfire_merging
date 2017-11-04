@@ -21,7 +21,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class NoCComponent(object):
 
     def __init__(self):
-        self.component_declaration = ''
-        self.component_port_map = ''
-        self.component_signals = ''
+        self._name = ''
+        self._port = list()
+        self._generic = list()
+
+    def set_name(self, name):
+        self._name = name
+
+    def set_port(self, port_definition):
+        self._port = port_definition
+
+    def set_generic(self, generic_definition):
+        self._generic = generic_definition
+
 

@@ -23,7 +23,7 @@ entity router_credit_based is
     credit_in_N, credit_in_E, credit_in_W, credit_in_S, credit_in_L: in std_logic;
     valid_in_N, valid_in_E, valid_in_W, valid_in_S, valid_in_L : in std_logic;
 
-    valid_out_N, valid_out_E, valid_out_W, valid_out_S, valid_out_L : out std_logic;
+    valid_out_N, valid_out_E, valid_out_W, valid_out_S, valid_out_L : out std_logic := '0';
     credit_out_N, credit_out_E, credit_out_W, credit_out_S, credit_out_L: out std_logic;
 
     TX_N, TX_E, TX_W, TX_S, TX_L: out std_logic_vector (DATA_WIDTH-1 downto 0)
