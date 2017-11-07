@@ -6,7 +6,7 @@ use ieee.std_logic_1164.all;
 --use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity router_credit_based is
-	generic (
+generic (
         DATA_WIDTH: std_logic_vector(7 downto 0) := 32;
         current_address : integer := 0;
         Cx_rst : integer := 10;
@@ -15,7 +15,7 @@ entity router_credit_based is
     port (
     reset, clk: in std_logic;
 
-    Rxy_reconf: in  std_logic_vector(7 downto 0);
+    Rxy_reconf: in std_logic_vector(7 downto 0);
     Reconfig : in std_logic;
 
     RX_N, RX_E, RX_W, RX_S, RX_L : in std_logic_vector (DATA_WIDTH-1 downto 0);

@@ -41,9 +41,7 @@ def word_in_string(word, string):
     :param string: The string to search the word from
     :return: _sre.SRE_match object if word is found, None otherwise
     """
-    print('---------------------------')
-    print(string)
-    print(word)
+
     return re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search(string)
 
 

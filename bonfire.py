@@ -86,9 +86,9 @@ def main():
 
     # Parse the VHDL files for building the NW file and the TB
     try:
-        parse_vhdl(config, logging)
+        network_components = parse_vhdl(config, logging)  # TODO: Actually do something with the parsed entities
 
-    except FileNotFoundError as err:
+    except (FileNotFoundError, RuntimeError, ValueError) as err:
         print_msg(MSG_ERROR, str(err))
         return package.FAILURE
 
