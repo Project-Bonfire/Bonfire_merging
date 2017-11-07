@@ -35,7 +35,7 @@ def extract_config_path(args):
         exec_mode = package.EXEC_TYPE_SIMUL
 
     elif args.synth:
-        config_dir = package.ASIC_CONF_DIR
+        config_dir = package.SYNTH_CONF_DIR
         config_name = args.synth
         exec_mode = package.EXEC_TYPE_ASIC
 
@@ -82,7 +82,7 @@ def check_file_format(yaml_config, config_file, exec_mode, top_level):
 
 
 # def read_config(config_dir, config_name):
-def read_config(config_file, exec_mode, top_level_conf, debug):
+def read_config(config_file, exec_mode, top_level_conf, logging):
     """
     Recursively read a configuration from a YAML file
     :param config_file:     (str)  Path to the YAML configuration file to read
@@ -90,7 +90,7 @@ def read_config(config_file, exec_mode, top_level_conf, debug):
     :param top_level_conf:  (bool) If we are checking the top level if the main config file
                                    (while calling the function from outside of this function
                                    it should be always True)
-    :param exec_mode:       (bool) Weather we should print debugging information
+    :param logging:         (bool) Logger instance
     :return:                (Dictionary) Contains the configuration that was read
     """
 
@@ -112,10 +112,10 @@ def read_config(config_file, exec_mode, top_level_conf, debug):
                 config['network_template'] = yaml_config['network_template']
                 config['router'] = read_config(os.path.join(package.ROUTERS_CONF_DIR,
                                                             yaml_config['router'] + '.yml'),
-                                               exec_mode, False, debug)['files']
+                                               exec_mode, False, logging)['files']
                 config['ni_pe'] = read_config(os.path.join(package.NI_PE_CONF_DIR,
                                                            yaml_config['ni_pe'] + '.yml'),
-                                              exec_mode, False, debug)['files']
+                                              exec_mode, False, logging)['files']
 
                 # If a packet injector is defined, we use this in the TB,
                 # otherwise we will just instantiate the component there and expect things to work out on their own
@@ -123,7 +123,7 @@ def read_config(config_file, exec_mode, top_level_conf, debug):
                 if 'packet_injector' in yaml_config:
                     config['packet_injector'] = read_config(os.path.join(package.PACKET_INJECTOR_CONF_DIR,
                                                                          yaml_config['packet_injector'] + '.yml'),
-                                                            exec_mode, False, debug)['files']
+                                                            exec_mode, False, logging)['files']
 
             if 'files' in yaml_config:
                 for file in yaml_config['files']:
@@ -135,8 +135,7 @@ def read_config(config_file, exec_mode, top_level_conf, debug):
         except TypeError:
             raise ValueError('Configuration file seems to be empty?!?!?! (' + config_file + ')')
 
-    if debug:
-        print_msg(MSG_DEBUG, 'Config:' + str(config))
+        logging.debug('Read config: ' + str(config))
 
     return config
 

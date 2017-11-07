@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+import re
 from Scripts.include.misc import package
 
 # Check_dir return values
@@ -31,6 +32,19 @@ MSG_WARN = 1
 MSG_ERROR = 2
 MSG_BLUE_INFO = 3
 MSG_DEBUG = 4
+
+
+def word_in_string(word, string):
+    """
+    Find if there is a word in a string.
+    :param word: Word to search for
+    :param string: The string to search the word from
+    :return: _sre.SRE_match object if word is found, None otherwise
+    """
+    print('---------------------------')
+    print(string)
+    print(word)
+    return re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search(string)
 
 
 def colorize_text(bold, underlined, string, color=package.COLOR_END):

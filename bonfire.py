@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
-import logging
 import time
+import logging
 
 from Scripts.include.misc import arg_parser
 from Scripts.include.misc.Logger import Logger
@@ -70,7 +70,7 @@ def main():
     config_file, exec_mode = extract_config_path(args)
 
     try:
-        config = read_config(config_file, exec_mode, True, args.debug)
+        config = read_config(config_file, exec_mode, True, logging)
 
     except FileNotFoundError as err:
         print_msg(MSG_ERROR, 'Cannot open config file: ' + str(err))
@@ -86,7 +86,7 @@ def main():
 
     # Parse the VHDL files for building the NW file and the TB
     try:
-        parse_vhdl(config)
+        parse_vhdl(config, logging)
 
     except FileNotFoundError as err:
         print_msg(MSG_ERROR, str(err))

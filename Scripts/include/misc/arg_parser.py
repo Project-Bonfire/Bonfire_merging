@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import sys
 import argparse
 from Scripts.include.misc import package
 from Scripts.include.misc.helper_func import colorize_text
+
 
 def parse():
     """
@@ -49,6 +51,12 @@ def parse():
 
     parser.add_argument('--debug', '-d', action='store_true', required=False,
                         help='Enable script debugging')
+
+    # Display the --help message when no arguments are given
+    if len(sys.argv[1:]) == 0:
+        parser.print_help()
+        # parser.print_usage() # for just the usage line
+        parser.exit()
 
     # Parse the arguments
     args = parser.parse_args()
