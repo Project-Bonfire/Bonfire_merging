@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 
 EXEC_TYPE_SIMUL = 0
-EXEC_TYPE_ASIC = 1
+EXEC_TYPE_SYNTH = 1
 EXEC_TYPE_FPGA = 2
 
 FAILURE = 1
@@ -47,7 +47,7 @@ os.chdir(PROJECT_ROOT)
 # Temporary directory for storing simulation files
 TMP_DIR = PROJECT_ROOT + '/tmp'
 SIMUL_DIR = TMP_DIR + '/simul_temp'
-ASIC_DIR = TMP_DIR + '/asic_temp'
+SYNTH_DIR = TMP_DIR + '/synth_temp'
 FPGA_DIR = TMP_DIR + '/fpga_temp'
 LOG_DIR = TMP_DIR + '/logs'
 TRACE_DIR = TMP_DIR + '/traces'
@@ -59,7 +59,7 @@ ROUTERS_CONF_DIR = COMPONENT_CONF_DIR + '/routers'
 NI_PE_CONF_DIR = COMPONENT_CONF_DIR + '/ni_pe'
 PACKET_INJECTOR_CONF_DIR = COMPONENT_CONF_DIR + '/packet_injectors'
 SIM_CONF_DIR = CONFIG_DIR + '/sim'
-SYNTH_CONF_DIR = CONFIG_DIR + '/asic'
+SYNTH_CONF_DIR = CONFIG_DIR + '/synth'
 FPGA_CONF_DIR = CONFIG_DIR + '/fpga'
 
 TOP_LEVEL_SIMUL_YAML_LISTS = (

@@ -27,6 +27,7 @@ from Scripts.include.misc import arg_parser
 from Scripts.include.misc.Logger import Logger
 from Scripts.include.parser.conf_parser import *
 from Scripts.include.parser.vhdl_parser import *
+from Scripts.include.file_generation.network_builder import *
 
 try:
     import yaml
@@ -51,21 +52,25 @@ def main():
         print_msg(MSG_ERROR, str(err))
         return package.FAILURE
 
-    # Check if the temporary folder exists. If it does, clear it, if not, create it.
-    try:
-        check_dir(package.LOG_DIR, True, args.debug)
-        check_dir(package.TRACE_DIR, True, args.debug)
-
-    except (OSError, ValueError) as err:
-        print_msg(MSG_ERROR, str(err))
-        return package.FAILURE
-
     # Just for getting a copy of the current console
     sys.stdout = Logger()
 
     # Setup Logging
-    logging.basicConfig(filename=package.LOG_DIR + '/Logging_Log_' + str(time.time()) + '.log', level=logging.DEBUG)
+    if args.debug:
+        logging.basicConfig(filename=package.LOG_DIR + '/Logging_Log_' + str(time.time()) + '.log', level=logging.DEBUG)
+    else:
+        logging.basicConfig(filename=package.LOG_DIR + '/Logging_Log_' + str(time.time()) + '.log', level=logging.INFO)
+
     logging.info('Logging started...')
+
+    # Check if the temporary folder exists. If it does, clear it, if not, create it.
+    try:
+        check_dir(package.LOG_DIR, True, logging)
+        check_dir(package.TRACE_DIR, True, logging)
+
+    except (OSError, ValueError) as err:
+        print_msg(MSG_ERROR, str(err))
+        return package.FAILURE
 
     config_file, exec_mode = extract_config_path(args)
 
@@ -91,6 +96,12 @@ def main():
     except (FileNotFoundError, RuntimeError, ValueError) as err:
         print_msg(MSG_ERROR, str(err))
         return package.FAILURE
+
+    # Get the output directory
+    output_dir = get_output_path(exec_mode, logging)
+
+    # Build the network
+    build_network(network_components, output_dir, args, logging)
 
     return package.SUCCESS
 

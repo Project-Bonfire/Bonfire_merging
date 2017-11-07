@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import re
+from difflib import SequenceMatcher
 from Scripts.include.misc import package
 
 # Check_dir return values
@@ -34,12 +35,56 @@ MSG_BLUE_INFO = 3
 MSG_DEBUG = 4
 
 
+def find_one_char_diff(string1, string2):
+    """
+    Finds if two string have only one character difference
+    :param string1: (str) First string for comparison
+    :param string2: (str) Second string for comparison
+    :return:        True if strings are the same length with
+                    only one character difference, False otherwise
+    """
+
+    if len(string1) == len(string2):
+
+        match = SequenceMatcher(None, string1, string2).find_longest_match(0, len(string1), 0, len(string2))
+
+        if len(string1) - match.size == 1:
+            return True
+
+    return False
+
+
+def get_output_path(exec_mode, logger):
+    """
+    Calculates and creates an output directory based on the script's arguments.
+    :param exec_mode:   (int) Execution mode
+    :param logger:      (Logger) Logger instance
+    :return:            Path to the output directory
+    """
+
+    if exec_mode == package.EXEC_TYPE_SIMUL:
+        output_dir = package.SIMUL_DIR
+
+    elif exec_mode == package.EXEC_TYPE_SYNTH:
+        output_dir = package.SYNTH_DIR
+
+    elif exec_mode == package.EXEC_TYPE_FPGA:
+        output_dir = package.FPGA_DIR
+
+    else:
+        raise ValueError("Unknown output. How did we get here???")
+
+    check_dir(output_dir, True, logger)
+
+    return output_dir
+
+
 def word_in_string(word, string):
     """
     Find if there is a word in a string.
-    :param word: Word to search for
-    :param string: The string to search the word from
-    :return: _sre.SRE_match object if word is found, None otherwise
+    :param word:    (str) Word to search for
+    :param string:  (str) The string to search the word from
+    :return:        _sre.SRE_match object if word is found, None otherwise
     """
 
     return re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search(string)
@@ -110,12 +155,12 @@ def ask_user_input_yn(question):
     return user_input == 'y'
 
 
-def check_dir(dir_path, create_dir, debug):
+def check_dir(dir_path, create_dir, logger):
     """
     Check if directory exists. If not, it will be created.
     :param dir_path:     (str)   Path to the directory
     :param create_dir:   (bool)  Should the directory be created in case it does not exist
-    :param debug:        (bool)  Should we print debugging messages
+    :param logger:       (Logger)  Instance to system logger
     :return:             (int)   -1 In case of an error, a positive value otherwise
     """
 
@@ -132,8 +177,7 @@ def check_dir(dir_path, create_dir, debug):
 
             # Remove the existing file
             if user_input:  # User said 'yes'
-                if debug:
-                    print_msg(MSG_INFO, 'Removing existing file...')
+                logger.info(dir_path + ': Removing existing file...')
 
                 os.remove(dir_path)
 
@@ -142,8 +186,7 @@ def check_dir(dir_path, create_dir, debug):
 
             # Create a directory in place of the file
             if create_dir:
-                if debug:
-                    print_msg(MSG_BLUE_INFO, 'Creating the directory')
+                logger.info(dir_path + ': Creating the directory')
 
                 os.makedirs(dir_path)
 
@@ -154,14 +197,12 @@ def check_dir(dir_path, create_dir, debug):
 
         # Directory already exists
         else:
-            if debug:
-                print_msg(MSG_BLUE_INFO, dir_path + ': Using existing directory')
+            logger.info(dir_path + ': Using existing directory')
             return DIR_EXISTS
 
     else:
         if create_dir:
-            if debug:
-                print_msg(MSG_BLUE_INFO, 'Directory ' + dir_path + 'not found. Creating it.')
+            logger.info('Directory ' + dir_path + 'not found. Creating it.')
 
             os.makedirs(dir_path)
 

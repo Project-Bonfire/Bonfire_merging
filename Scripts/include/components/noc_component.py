@@ -17,21 +17,163 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from Scripts.include.misc.helper_func import *
+
 
 class NoCComponent(object):
 
     def __init__(self):
+        """
+        Class to store NoC component data
+        and to generate VHDL code from the data
+        """
         self._name = ''
         self._port = list()
         self._generic = list()
 
     def set_name(self, name):
+        """
+        Sets component name.
+        :param name: Name of the component
+        :return:     None
+        """
         self._name = name
 
     def set_port(self, port_definition):
+        """
+        Sets port signals for the component
+        :param port_definition: List of port signals
+        :return: None
+        """
         self._port = port_definition
 
     def set_generic(self, generic_definition):
+        """
+        Sets generic signals for the component
+        :param generic_definition: List of generic signals
+        :return: None
+        """
         self._generic = generic_definition
 
+    def get_inst(self):
+        """
+        Generates component instantiation VHDL code for the current component
+        :return: String containing VHDL code for component instantiation
+        """
+
+        # Component <entity_name> is
+        inst_str = 'component ' + self._name + ' is\n\n'
+
+        # generic (
+        #   <signal declaration 1>;
+        #   <signal declaration 2>;
+        #   <signal declaration n>
+        # );
+        if self._generic:
+            inst_str += '\tgeneric (\n'
+
+            for i, signal in enumerate(self._generic):
+                signal_str = '\t\t' + signal['name'] + ' : ' \
+                             + signal['type'] + ' := ' \
+                             + signal['name']
+
+                if i < len(self._generic) - 1:
+                    signal_str += ';\n'
+                else:
+                    signal_str += '\n\t);\n\n'
+
+                inst_str += signal_str
+
+        # port (
+        #   <signal declaration 1>;
+        #   <signal declaration 2>;
+        #   <signal declaration n>
+        # );
+        if self._port:
+            inst_str += '\tport (\n'
+
+            for i, signal in enumerate(self._port):
+                signal_str = '\t\t' + signal['name'] + ' : ' \
+                             + signal['direction'] + ' ' \
+                             + signal['type']
+
+                if i < len(self._port) - 1:
+                    signal_str += ';\n'
+                else:
+                    signal_str += '\n\t);\n\n'
+
+                inst_str += signal_str
+
+        else:
+            raise RuntimeError('Tried to read port values, but they were empty. Something\'s wrong...')
+
+        # End component;
+        inst_str += 'end component;\n'
+
+        return inst_str
+
+    def get_signals(self):
+        """
+        Generates VHDL code for signal declaration
+        :return: String containing signal declaration
+        """
+
+        signal_str = ''
+        for signal in self._port:
+            signal_str += 'signal ' + signal['name'] + ' : ' + signal['type'] + ';\n'
+
+        return signal_str
+
+    def get_port_map(self):
+        """
+        Generates VHDL code for port map of the current component
+        :return: String containg the port map
+        """
+        name = 'component'  # TODO: add real name
+
+        # Component <entity_name> is
+        pmap_str = name + ': ' + self._name + '\n\n'
+
+        # generic map (
+        #   <signal1 = > signal1>;
+        #   <signal2 = > signal2>;
+        #   <signal3 = > signal3>
+        # );
+        if self._generic:
+            pmap_str += '\tgeneric map (\n'
+
+            for i, signal in enumerate(self._generic):
+                signal_str = '\t\t' + signal['name'] + ' => ' \
+                              + signal['name']
+
+                if i < len(self._generic) - 1:
+                    signal_str += ',\n'
+                else:
+                    signal_str += '\n\t)\n\n'
+
+                pmap_str += signal_str
+
+        # port map (
+        #   <signal1 = > signal1>;
+        #   <signal2 = > signal2>;
+        #   <signal3 = > signal3>
+        # );
+        if self._port:
+            pmap_str += '\tport map (\n'
+
+            for i, signal in enumerate(self._port):
+                signal_str = '\t\t' + signal['name'] + ' => ' \
+                             + signal['name']
+
+                if i < len(self._port) - 1:
+                    signal_str += ',\n'
+                else:
+                    signal_str += '\n\t);\n\n'
+
+                pmap_str += signal_str
+
+        else:
+            raise RuntimeError('Tried to read port values, but they were empty. Something\'s wrong...')
+
+        return pmap_str
 

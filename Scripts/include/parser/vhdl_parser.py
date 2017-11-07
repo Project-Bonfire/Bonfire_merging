@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from copy import deepcopy
 from Scripts.include.misc.helper_func import *
 from Scripts.include.misc.package import *
 from Scripts.include.components.noc_component import NoCComponent
@@ -97,7 +98,7 @@ def process_signal_list(signals, vhd_file, logging, is_port):
             signal_components['name'] = signal_name.strip()
 
             # Add processed signal to list
-            signal_list.append(signal_components)
+            signal_list.append(deepcopy(signal_components))
 
             logging.debug('Found signal: ' + signal_components['name'])
 

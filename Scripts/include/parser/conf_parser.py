@@ -37,7 +37,7 @@ def extract_config_path(args):
     elif args.synth:
         config_dir = package.SYNTH_CONF_DIR
         config_name = args.synth
-        exec_mode = package.EXEC_TYPE_ASIC
+        exec_mode = package.EXEC_TYPE_SYNTH
 
     elif args.fpga:
         config_dir = package.FPGA_CONF_DIR
@@ -57,7 +57,7 @@ def check_file_format(yaml_config, config_file, exec_mode, top_level):
     Checks if all required fields exist in the YAML file
     :param yaml_config: (dictionary) Top level configuration read from a YAML file
     :param config_file: (str)        Name of the configuration file
-    :param exec_mode:       (int)  Mode of execution (simulate, asic, fpga)
+    :param exec_mode:       (int)  Mode of execution (simulate, synthesis, fpga)
     :param top_level:   (bool)       If we are checking the top level if the main config file
                                      (while calling the function from outside of this function
                                      it should be always True)
@@ -86,7 +86,7 @@ def read_config(config_file, exec_mode, top_level_conf, logging):
     """
     Recursively read a configuration from a YAML file
     :param config_file:     (str)  Path to the YAML configuration file to read
-    :param exec_mode:       (int)  Mode of execution (simulate, asic, fpga)
+    :param exec_mode:       (int)  Mode of execution (simulate, synthesis, fpga)
     :param top_level_conf:  (bool) If we are checking the top level if the main config file
                                    (while calling the function from outside of this function
                                    it should be always True)
