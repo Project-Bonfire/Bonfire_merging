@@ -79,6 +79,16 @@ ROUTER_RTL_DIR = RTL_DIR + '/Router'
 NI_RTL_DIR = RTL_DIR + '/NI'
 PROCESSOR_RTL_DIR = RTL_DIR + '/Processor'
 
+ROUTER_DEFAULTS = dict(
+    current_address=0,
+    shmu_address=0,
+    reserved_address=0,
+    flag_address=0,
+    counter_address=0,
+    reconfiguration_address=0,
+    self_diagnosis_address=0
+)
+
 # # Subfolders
 # SCRIPTS_DIR = PROJECT_ROOT + '/Scripts'
 # TEST_DIR = PROJECT_ROOT + '/Test'

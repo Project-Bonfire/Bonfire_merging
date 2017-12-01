@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from Scripts.include.misc.helper_func import *
-
 
 class NoCComponent(object):
 
@@ -55,62 +53,31 @@ class NoCComponent(object):
         """
         self._generic = generic_definition
 
-    def get_inst(self):
+    def get_name(self):
         """
-        Generates component instantiation VHDL code for the current component
-        :return: String containing VHDL code for component instantiation
+        Returns component name.
+        :return:     Name of the component
         """
+        return self._name
 
-        # Component <entity_name> is
-        inst_str = 'component ' + self._name + ' is\n\n'
+    def get_port(self):
+        """
+        Returns port signals for the component
+        :return: List of port signals
+        """
+        return self._port
 
-        # generic (
-        #   <signal declaration 1>;
-        #   <signal declaration 2>;
-        #   <signal declaration n>
-        # );
-        if self._generic:
-            inst_str += '\tgeneric (\n'
+    def get_generic(self):
+        """
+        Sets generic signals for the component
+        :return: List of generic signals
+        """
+        return self._generic
 
-            for i, signal in enumerate(self._generic):
-                signal_str = '\t\t' + signal['name'] + ' : ' \
-                             + signal['type'] + ' := ' \
-                             + signal['name']
 
-                if i < len(self._generic) - 1:
-                    signal_str += ';\n'
-                else:
-                    signal_str += '\n\t);\n\n'
+    # ===================
 
-                inst_str += signal_str
 
-        # port (
-        #   <signal declaration 1>;
-        #   <signal declaration 2>;
-        #   <signal declaration n>
-        # );
-        if self._port:
-            inst_str += '\tport (\n'
-
-            for i, signal in enumerate(self._port):
-                signal_str = '\t\t' + signal['name'] + ' : ' \
-                             + signal['direction'] + ' ' \
-                             + signal['type']
-
-                if i < len(self._port) - 1:
-                    signal_str += ';\n'
-                else:
-                    signal_str += '\n\t);\n\n'
-
-                inst_str += signal_str
-
-        else:
-            raise RuntimeError('Tried to read port values, but they were empty. Something\'s wrong...')
-
-        # End component;
-        inst_str += 'end component;\n'
-
-        return inst_str
 
     def get_signals(self):
         """

@@ -35,9 +35,9 @@ MSG_BLUE_INFO = 3
 MSG_DEBUG = 4
 
 
-def find_one_char_diff(string1, string2):
+def max_two_char_diff(string1, string2):
     """
-    Finds if two string have only one character difference
+    Finds if two string have only up to two character difference
     :param string1: (str) First string for comparison
     :param string2: (str) Second string for comparison
     :return:        True if strings are the same length with
@@ -48,7 +48,7 @@ def find_one_char_diff(string1, string2):
 
         match = SequenceMatcher(None, string1, string2).find_longest_match(0, len(string1), 0, len(string2))
 
-        if len(string1) - match.size == 1:
+        if len(string1) - match.size < 3:
             return True
 
     return False

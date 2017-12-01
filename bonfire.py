@@ -100,6 +100,8 @@ def main():
     # Get the output directory
     output_dir = get_output_path(exec_mode, logging)
 
+    print(output_dir)
+
     # Build the network
     build_network(network_components, output_dir, args, logging)
 
