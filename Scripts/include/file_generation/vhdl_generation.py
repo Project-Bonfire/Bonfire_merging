@@ -18,28 +18,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-def generate_copyright():
+def generate_copyright_msg():
     """
     Generates copytight message
     :return: string containing the copyright message
     """
 
-    return """
--- Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
--- 
--- This program is free software: you can redistribute it and/or modify
--- it under the terms of the GNU General Public License as published by
--- the Free Software Foundation, either version 3 of the License, or
--- (at your option) any later version.
--- 
--- This program is distributed in the hope that it will be useful,
--- but WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
--- GNU General Public License for more details.
--- 
--- You should have received a copy of the GNU General Public License
--- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+    copyright_str = """Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>."""
+
+    return copyright_str + '\n'
 
 
 def cx_rst_calculator(node_id, network_size):
@@ -65,6 +65,108 @@ def cx_rst_calculator(node_id, network_size):
 
     return c_s * 8 + c_w * 4 + c_e * 2 + c_n
 
+
+def gen_multi_line_comment(string):
+    """
+    Tunrs a string into a multi-line comment
+    :param string: String to process
+    :return: The multi-line comment
+    """
+
+    string = string.splitlines()
+
+    max_line_length = 0
+
+    # Find the maximum line length of the string
+    for line in string:
+        line_length = len(line)
+
+        if line_length > max_line_length:
+            max_line_length = line_length
+
+    # Build the comment string
+    comment_str = (max_line_length + 6) * '-' + '\n'
+
+    for line in string:
+        # Decode special symbols
+        line = line.replace('%%-%%', max_line_length * '-')
+
+        # Actually generate the line
+        comment_str += '-- ' + line + (max_line_length - len(line) + 1) * ' ' + '--\n'
+
+    comment_str += + (max_line_length + 6) * '-' + '\n'
+
+    return comment_str
+
+
+def generate_file_header(file_descr, noc_size):
+    """
+    Generates VHDL file header
+    :param file_descr:  Generated file description
+    :param noc_size:    Size of the network
+    :return: String containing the VHDL file header for the network
+    """
+
+    header_str = file_descr + '\n%%-%%\n\n'
+    header_str += generate_copyright_msg()
+    header_str += '\n%%-%%\n'
+    header_str += 'This file has been automatically generated. Just for you :)\n'
+    header_str += 'Generated network size: ' + str(noc_size) + 'x' + str(noc_size) + '\n'
+
+    header_str = header_str
+
+    libraries = '\nlibrary ieee;\n'
+    libraries += 'use ieee.std_logic_1164.all;\n'
+    libraries += 'use IEEE.STD_LOGIC_ARITH.ALL;\n'
+    libraries += 'use IEEE.STD_LOGIC_UNSIGNED.ALL;\n'
+    libraries += 'USE ieee.numeric_std.ALL;\n\n'
+
+    return gen_multi_line_comment(header_str) + libraries
+
+
+def generate_file_entity(entity_name, generic, port):
+    """
+    Generates an VHDL entity
+    :param entity_name: Name of the entity
+    :param generic:     List of generics
+    :param port:        List of port signals
+    :return:
+    """
+
+    entity = 'entity ' + entity_name + ' is\n'
+    entity += '\tgeneric(' + '<generic_placeholder>' + ');\n'
+    entity += '\tport(' + '<port_placeholder>' + ');\n'
+    entity += 'end ' + entity_name + ';\n\n'
+
+    return entity
+
+
+def generate_file_arch(arch_name, noc_size, component_list):
+    """
+    Generates Architecture part of a VHDL file
+    :param arch_name: Name of the architecture
+    :param noc_size: Size of the NoC
+    :param component_list: List containing Component objects
+    :return: A string containing the VHDL architecture
+    """
+    arch_contents = 'architecture behavior of ' + arch_name + ' is\n\n'
+    arch_contents += generate_signal_list(component_list)
+    arch_contents += '\t' + build_components(component_list, noc_size) + '\n'
+    arch_contents += 'begin\n'
+    arch_contents += '\t<code_placeholder>\n'
+    arch_contents += 'end ' + arch_name + ';\n'
+
+    return arch_contents
+
+
+def generate_signal_list(component_list):
+
+    signal_list_str = gen_multi_line_comment(' Signal declarations\n')
+    signal_list_str +='<signal_decl_placeholder>\n'
+    # for component in component_list:
+    #     signal_list_str += component.
+
+    return signal_list_str
 
 def gen_component_decl(addr, noc_size, component):
 
@@ -123,46 +225,6 @@ def gen_component_decl(addr, noc_size, component):
     return inst_str
 
 
-def generate_file_header(file_descr, noc_size):
-    """
-    Generates VHDL file header
-    :param file_descr:  Generated file description
-    :param noc_size:    Size of the network
-    :return: String containing the VHDL file header for the network
-    """
-
-    return '-' * 82 + '\n'\
-        + '-- ' + file_descr + '\n' \
-        + '-' * 82 + '\n'\
-        + generate_copyright() + '\n' \
-        + '-' * 82 + '\n' \
-        + '-- This file has been automatically generated. Just for you :)\n' \
-        + '-- (DO NOT EDIT)\n' \
-        + '-' * 82 + '\n' \
-        + '-- Generated network size: ' + str(noc_size) + 'x' + str(noc_size) + '\n'
-
-
-def generate_file_entity(entity_name, generic, port):
-    """
-    Generates an VHDL entity
-    :param entity_name: Name of the entity
-    :param generic:     List of generics
-    :param port:        List of port signals
-    :return:
-    """
-
-    return '\n\n' \
-        + 'library ieee;\n' \
-        + 'use ieee.std_logic_1164.all;\n' \
-        + 'use IEEE.STD_LOGIC_ARITH.ALL;\n' \
-        + 'use IEEE.STD_LOGIC_UNSIGNED.ALL;\n' \
-        + 'USE ieee.numeric_std.ALL;\n\n' \
-        + 'entity ' + entity_name + ' is\n' \
-        + '\tgeneric(' + '<generic_placeholder>' + ');\n' \
-        + '\tport(' + '<port_placeholder>' + ');\n' \
-        + 'end ' + entity_name + ';\n\n'
-
-
 def build_components(component_list, noc_size):
 
     # Router instantiation
@@ -175,13 +237,3 @@ def build_components(component_list, noc_size):
 
     return components_str
 
-
-def generate_file_arch(arch_name, noc_size, component_list):
-    arch_contents = ''
-    arch_contents += 'architecture behavior of ' + arch_name + 'is\n'
-    arch_contents += '\t' + build_components(component_list, noc_size) + '\n'
-    arch_contents += 'begin\n'
-    arch_contents += '\t<code_placeholder>\n'
-    arch_contents += 'end ' + arch_name + ';\n'
-
-    return arch_contents
