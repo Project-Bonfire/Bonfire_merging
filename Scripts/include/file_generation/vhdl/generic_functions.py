@@ -20,27 +20,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 CLK_RST_SIG_NAMES = ['clk', 'reset', 'clock', 'rst']
 
 
-def process_lines_into_string(lines, prefix='', suffix='\n', grouping_symbol=', ', group_size=1):
+def process_lines_into_string(lines, prefix='', suffix='\n', grouping_symbol=', ',
+                              group_size=1, block_end_newline=False):
     """
     Changes an list of strings into a joined string, optionally adding suffices and prefixes to each line
-    :param lines:           List of lines to be processed
-    :param prefix:          Prefix to add to each line
-    :param suffix:          Suffix to be added to each line
-    :param grouping_symbol: Symbol to be used for grouping
-    :param group_size:      Size of the one group (grouping_symbol is used between groups,
-                            newline is injected in the end of the group)
-    :return:                String containing all the substrings specified in the list
+    :param lines:               List of lines to be processed
+    :param prefix:              Prefix to add to each line
+    :param suffix:              Suffix to be added to each line
+    :param grouping_symbol:     Symbol to be used for grouping
+    :param group_size:          Size of the one group (grouping_symbol is used between groups,
+                                    newline is injected in the end of the group)
+    :param block_end_newline:   Character to put in the end of the entire block
+    :return:                    String containing all the substrings specified in the list
     """
 
     # Group lines into groups specified by group_size
     grouped_lines = [lines[i:(i + group_size)] for i in range(0, len(lines), group_size)]
 
-    signal_declarations = list()
+    group_elements = list()
 
     for line_group in grouped_lines:
-        signal_declarations.append(prefix + grouping_symbol.join(line_group) + suffix)
+        group_elements.append(prefix + grouping_symbol.join(line_group) + suffix)
 
-    lines_str = ''.join(signal_declarations) + '\n'
+    lines_str = ''.join(group_elements) + ('\n' if block_end_newline else '')
 
     return lines_str
 
@@ -78,35 +80,44 @@ def cx_rst_calculator(node_id, network_size):
     return cx_rst
 
 
-def gen_multi_line_comment(string):
+def gen_multi_line_comment(string, comment_char='-'):
     """
     Tunrs a string into a multi-line comment
     :param string: String to process
+    :param comment_char: Character to be used for comments
     :return: The multi-line comment
     """
 
     string = string.splitlines()
 
-    max_line_length = 0
-
     # Find the maximum line length of the string
-    for line in string:
-        line_length = len(line)
+    max_line_length = max([[len(line)] for line in string])[0]
 
-        if line_length > max_line_length:
-            max_line_length = line_length
-
-    # Build the comment string
-    comment_str = (max_line_length + 6) * '-' + '\n'
+    # Build the comment
+    comment_lines = [(max_line_length + 6) * comment_char]
 
     for line in string:
+
         # Decode special symbols
-        line = line.replace('%%-%%', max_line_length * '-')
+        line = line.replace('%%-%%', max_line_length * comment_char)
 
-        # Actually generate the line
-        comment_str += '-- ' + line + (max_line_length - len(line) + 1) * ' ' + '--\n'
+        line_prefix = 2 * comment_char + ' '
+        line_suffix = (max_line_length - len(line) + 1) * ' ' + 2 * comment_char
 
-    comment_str += + (max_line_length + 6) * '-' + '\n'
+        comment_lines.append(line_prefix + line + line_suffix)
+
+    comment_lines.append((max_line_length + 6) * comment_char)
+
+    # Actually build the string
+    comment_str = process_lines_into_string(comment_lines)
 
     return comment_str
 
+
+def ident(ident_level):
+    """
+    Returns the number of tabs specified in the 'ident_level' parameter
+    :param ident_level: how many tabs to insert
+    :return:
+    """
+    return ident_level * '\t'

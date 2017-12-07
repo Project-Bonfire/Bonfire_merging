@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from Scripts.include.file_generation.vhdl.generic_functions import *
 
 
-def generate_signal_list(conn_if, node_count):
+def generate_signal_list(conn_if, node_count, ident_level):
 
     group_size = 3
 
@@ -51,13 +51,15 @@ def generate_signal_list(conn_if, node_count):
                 # Generate a signal for each node
                 signal_name_list = [signal['name'] + '_' + str(node) for node in range(node_count)]
 
-                signal_list_str += process_lines_into_string(signal_name_list, group_size=group_size, prefix='signal ',
-                                                             suffix=' : ' + signal['type'] + ';\n')
+                signal_list_str += process_lines_into_string(signal_name_list, group_size=group_size,
+                                                             prefix=ident(ident_level) + 'signal ',
+                                                             suffix=' : ' + signal['type'] + ';\n',
+                                                             block_end_newline=True)
 
     return signal_list_str
 
 
-def generate_port_maps(component_list, node_count):
+def generate_port_maps(component_list, node_count, ident_level):
 
     group_size = 3
 
@@ -73,6 +75,7 @@ def generate_port_maps(component_list, node_count):
 
     components_port_map_str = gen_multi_line_comment('Port Maps')
 
+    # Search for different components
     for component_type, component in sorted(component_list.items()):
 
         if component_type not in component_names.keys():
@@ -83,96 +86,107 @@ def generate_port_maps(component_list, node_count):
         for node_num in range(node_count):
 
             # Generate a comment describing the current signal group that is being processed
-            component_instantiation_line = component_names[component_type] + \
+            component_instantiation_line = ident(ident_level) + component_names[component_type] + \
                                            str(node_num) + ': ' + component.get_name() + '\n'
 
-            generic_map_str = '\tgeneric map ('
-            port_map_str = '\n\tport map ('
+            generic_map_str = ident(ident_level + 1) + 'generic map ('
+            port_map_str = '\n' + ident(ident_level + 1) + 'port map ('
 
             # Process generic map
             generic_map_str += '<placeholder>);\n'
 
             # Process port map
-            signal_name_list = [signal['name'] for signal in component.get_port()]
+            signal_name_list = []
+
+            for signal in component.get_port():
+                signal_suffix = '_' + str(node_num) if signal['name'] not in CLK_RST_SIG_NAMES else ''
+
+                signal_name_list.append(signal['name'] + signal_suffix)
 
             port_map_signals = process_lines_into_string(signal_name_list, group_size=group_size,
-                                                         prefix='\n\t\t', suffix=',')[:-2] + '\n'
+                                                         prefix='\n' + ident(ident_level + 2),
+                                                         suffix=',', block_end_newline=True)[:-2] + '\n'
 
-            port_map_str += port_map_signals + '\t);'
+            port_map_str += port_map_signals + ident(ident_level + 1) + ');'
 
             components_port_map_str += component_instantiation_line + generic_map_str + port_map_str + '\n\n'
 
     return components_port_map_str
 
 
-def gen_component_decl(addr, noc_size, component):
+def build_components(component_list, noc_size, ident_level):
 
-    inst_str = 'component ' + component.get_name() + ' is\n\n'
+    comment_dict = dict(
+        ni_pe='-- Processing Element',
+        router='-- Router'
+    )
 
-    if component.get_generic:
-        inst_str += '\tgeneric (\n'
+    component_instantiation_list = [gen_multi_line_comment('Component Declarations')]
 
-        for i, signal in enumerate(component.get_generic()):
-            signal_str = '\t\t' + signal['name'] + ' : ' \
-                         + signal['type'] + ' := '
+    for component_type, component in sorted(component_list.items()):
 
-            if signal['name'] == 'current_address':
-                signal_str += str(addr)
+        # Insert comment describing the component
+        if component_type not in comment_dict.keys():
+            raise ValueError('Unknown component type... This should never happen. Something went REALLY wrong.')
+        else:
+            component_instantiation_list.append(comment_dict[component_type])
 
-            elif signal['name'] == 'cx_rst':
-                signal_str += str(cx_rst_calculator(addr, noc_size))
+        # Component processing start here
+        generic_list = list()
+        port_list = list()
 
-            else:
-                signal_str += signal['name']
-            # signal['name']
+        generic_str = ''
+        port_str = ''
 
-            if i < len(component.get_generic()) - 1:
-                signal_str += ';\n'
-            else:
-                signal_str += '\n\t);\n\n'
+        component_list = [ident(ident_level) + 'component ' + component.get_name() + ' is']
 
-            inst_str += signal_str
+        # Process Generic
+        if component.get_generic():
+            generic_list.append(ident(ident_level + 1) + 'generic (<place_holder>);')
 
-    # port (
-    #   <signal declaration 1>;
-    #   <signal declaration 2>;
-    #   <signal declaration n>
-    # );
-    if component.get_port:
-        inst_str += '\tport (\n'
+            generic_str = process_lines_into_string(generic_list)
 
-        for i, signal in enumerate(component.get_port()):
-            signal_str = '\t\t' + signal['name'] + ' : ' \
-                         + signal['direction'] + ' ' \
-                         + signal['type']
+        # Process Port
+        if component.get_port:
 
-            if i < len(component.get_port()) - 1:
-                signal_str += ';\n'
-            else:
-                signal_str += '\n\t);\n\n'
+            port = component.get_port()
 
-            inst_str += signal_str
+            # Measure maximum signal name length, for formatting purposes
+            max_line_length = max([[len(line['name'])] for line in port])[0]
 
-    else:
-        raise RuntimeError('Tried to read port values, but they were empty. Something\'s wrong...')
+            port_list.append(ident(ident_level + 1) + 'port (')
 
-    # End component;
-    inst_str += 'end component;\n'
+            # Process all signals in the port
+            for signal in port:
+                free_space = (max_line_length - len(signal['name'])) * ' '
 
-    return inst_str
+                # Build signal line
+                signal = [ident(ident_level + 2),
+                          signal['name'], free_space, ' : ', signal['direction'], ' ', signal['type'] + ';']
 
+                signal_str = process_lines_into_string(signal, suffix='')
 
-def build_components(component_list, noc_size):
+                port_list.append(signal_str)
 
-    components_str = '\n' + gen_multi_line_comment('Component Declarations')
+            port_list[-1] = port_list[-1][:-1]
 
-    # Router instantiation
-    components_str += '\n-- Router\n'
-    components_str += gen_component_decl(0, noc_size, component_list['router'])
+            port_list.append(ident(ident_level + 1) + ');')
+            port_str = process_lines_into_string(port_list)
 
-    # NI_PE instantiation
-    components_str += '\n-- NI / PE\n'
-    components_str += gen_component_decl(0, noc_size, component_list['ni_pe'])
+        else:
+            raise RuntimeError('Tried to read port values, but they were empty. Something\'s wrong...')
 
-    return components_str
+        # Build the component declaration
+        component_list.append(generic_str)
+        component_list.append(port_str)
+        component_list.append('end component;')
+
+        component_str = process_lines_into_string(component_list)
+
+        component_instantiation_list.append(component_str)
+
+    # All components processed. Build the components block.
+    component_instantiation_str = process_lines_into_string(component_instantiation_list)
+
+    return component_instantiation_str
 

@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from Scripts.include.file_generation.vhdl.generic_functions import *
 from Scripts.include.file_generation.vhdl import vhd_header_gen
 from Scripts.include.file_generation.vhdl import vhd_arch_gen
+from Scripts.include.file_generation.vhdl.ascii_art import generate_ascii_art
 
 
 def generate_file_header(file_descr, noc_size):
@@ -30,21 +31,27 @@ def generate_file_header(file_descr, noc_size):
     :return: String containing the VHDL file header for the network
     """
 
-    header_str = file_descr + '\n%%-%%\n\n'
-    header_str += vhd_header_gen.generate_copyright_msg()
-    header_str += '%%-%%\n'
-    header_str += 'This file has been automatically generated. Just for you :)\n'
-    header_str += 'Generated network size: ' + str(noc_size) + 'x' + str(noc_size) + '\n'
+    header = [file_descr + '\n%%-%%\n',
+              vhd_header_gen.generate_copyright_msg(),
+              '%%-%%',
+              'This file has been automatically generated. Just for you :)',
+              '(DO NOT EDIT)',
+              '%%-%%',
+              'Generated network size: ' + str(noc_size) + 'x' + str(noc_size)]
+
+    header_str = process_lines_into_string(header)
 
     libraries = vhd_header_gen.gen_library_include()
 
-    vhd_header = gen_multi_line_comment(header_str) + '\n' + libraries
+    noc_ascii_art = generate_ascii_art(noc_size)
+
+    vhd_header = gen_multi_line_comment(header_str) + '\n' + libraries + '\n' + noc_ascii_art
 
     return vhd_header
 
 
 # TODO: IMPLEMENT ENTITY GENERATION
-def generate_file_entity(entity_name, generic, port):
+def generate_file_entity(entity_name, generic, port, ident_level):
 
     entity = 'entity ' + entity_name + ' is\n'
     entity += '\tgeneric(' + '<generic_placeholder>' + ');\n'
@@ -54,7 +61,7 @@ def generate_file_entity(entity_name, generic, port):
     return entity
 
 
-def generate_file_arch(arch_name, noc_size, component_list, conn_if):
+def generate_file_arch(arch_name, noc_size, component_list, conn_if, ident_level):
     """
     Generates Architecture part of a VHDL file
     :param arch_name: Name of the architecture
@@ -66,15 +73,13 @@ def generate_file_arch(arch_name, noc_size, component_list, conn_if):
 
     node_count = noc_size * noc_size
 
-    signal_list = vhd_arch_gen.generate_signal_list(conn_if, node_count)
-    component_decl = vhd_arch_gen.build_components(component_list, noc_size)
-    port_maps = vhd_arch_gen.generate_port_maps(component_list, node_count)
+    signal_list = vhd_arch_gen.generate_signal_list(conn_if, node_count, ident_level + 1)
+    component_decl = vhd_arch_gen.build_components(component_list, noc_size, ident_level + 1)
+    port_maps = vhd_arch_gen.generate_port_maps(component_list, node_count, ident_level + 1)
 
-    arch_contents = 'architecture behavior of ' + arch_name + ' is\n\n'
-    arch_contents += signal_list
-    arch_contents += '\t' + component_decl + '\n'
-    arch_contents += 'begin\n'
-    arch_contents += port_maps + '\n'
-    arch_contents += 'end ' + arch_name + ';\n'
+    arch_structure = ['architecture RTL of ' + arch_name + ' is\n',
+                      signal_list, component_decl, 'begin', port_maps, 'end RTL;']
 
-    return arch_contents
+    arch_str = process_lines_into_string(arch_structure)
+
+    return arch_str

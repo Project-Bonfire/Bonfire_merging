@@ -41,7 +41,7 @@ def generate_copyright_msg():
                        'You should have received a copy of the GNU General Public License',
                        'along with this program.  If not, see <http://www.gnu.org/licenses/>.']
 
-    copyright_msg = process_lines_into_string(copyright_lines, suffix='\n')
+    copyright_msg = process_lines_into_string(copyright_lines)
 
     return copyright_msg
 
@@ -58,6 +58,6 @@ def gen_library_include():
                  'use IEEE.std_logic_unsigned.ALL',
                  'USE IEEE.numeric_std.ALL']
 
-    lib_str = process_lines_into_string(libraries, suffix=';\n')
+    lib_str = process_lines_into_string(libraries, suffix=';\n', block_end_newline=True)
 
     return lib_str

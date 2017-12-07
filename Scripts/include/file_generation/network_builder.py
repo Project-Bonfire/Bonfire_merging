@@ -80,13 +80,13 @@ def process_component_connections(components):
 def build_network(components, output_dir, args, logging):
 
     vhdl_parts = dict()
-
+    ident_level = 0
     conn_if = process_component_connections(components)
 
     # get_component_parts(components['router'])
     vhdl_parts['header'] = generate_file_header('Project Bonfire Network File', 3)
-    vhdl_parts['entity'] = generate_file_entity('network', None, None)
-    vhdl_parts['arch'] = generate_file_arch('network', 3, components, conn_if)
+    vhdl_parts['entity'] = generate_file_entity('network', None, None, ident_level)
+    vhdl_parts['arch'] = generate_file_arch('network', 3, components, conn_if, ident_level)
 
     vhd_file_contents = vhdl_parts['header'] + vhdl_parts['entity'] + vhdl_parts['arch']
 
