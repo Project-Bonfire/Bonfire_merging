@@ -258,13 +258,13 @@ def parse_vhdl(config, logging):
 
     # NI / PE
     logging.debug('Processing NI / PE')
-    network_components['ni_pe'] = network_components['router'] = \
+    network_components['ni_pe'] = network_components['ni-pe'] = \
         parse_component(config, TYPE_NI_PE, logging)
 
     # Packet injector
     if 'packet_injector' in config:
         logging.debug('Processing packet injector')
         network_components['packet_injector'] = \
-            network_components['router'] = parse_component(config, TYPE_INJECTOR, logging)
+            network_components['injector'] = parse_component(config, TYPE_INJECTOR, logging)
 
     return network_components

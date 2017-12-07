@@ -1,0 +1,11 @@
+files:
+    - Processor/mlite_pack.vhd,
+    - Router/allocator.vhd,
+    - Router/arbiter_in.vhd,
+    - Router/arbiter_out.vhd,
+    - Router/counter_threshold.vhd,
+    - Router/ParityChecker_for_LBDR.vhd,
+    - Router/FIFO_one_hot_credit_based_packet_drop_classifier_support.vhd,
+    - Router/LBDR_packet_drop.vhd,
+    - Router/xbar.vhd,
+    - Router/Router_32_bit_credit_based.vhd

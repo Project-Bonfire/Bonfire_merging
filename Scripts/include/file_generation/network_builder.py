@@ -21,64 +21,71 @@ from copy import deepcopy
 from Scripts.include.file_generation.vhdl_generation import *
 
 
-# def get_component_parts(component):
-#     inst = component.get_inst(2, 4)
-#     signals = component.get_signals()
-#     port_map = component.get_port_map()
-#     print(signals)
+def process_component_connections(components):
+    """
+    Extract interfaces for network components and lists signals for connecting them together
+    :param components: List containing different network components
+    :return: Dictionary containing signals
+    """
 
-def process_components(components, noc_size):
-    node_count = noc_size * noc_size
+    inter_router_ports = ['_n', '_e', '_w', '_s']
 
     router = components['router']
-    inter_component_signals = dict()
+    ni_pe = components['ni_pe']
 
-    router_port_signals = router.get_port()
+    ni_router_signals = dict()
+    inter_router_signals = dict()
+    general_router_signals = dict()
+    general_ni_signals = dict()
 
-    # Extract parameters for basic inter-node router signals
-    for signal in router_port_signals:
+    # Sort router signals based on connection type
+    for signal in router.get_port():
+        signal_port = signal['name'][signal['name'].rfind('_'):]
 
-        if signal['name'][:-2] == 'rx' and 'data' not in inter_component_signals:
-            inter_component_signals['data'] = deepcopy(signal)
+        if signal_port in inter_router_ports:
+            inter_router_signals[signal['name'][:signal['name'].rfind('_')]] = deepcopy(signal)
 
-        elif signal['name'][:-2] == 'credit_out' and 'credit' not in inter_component_signals:
-            inter_component_signals['credit'] = deepcopy(signal)
+        elif signal_port == '_l':
+            ni_pe_sig_exists = False
 
-        elif signal['name'][:-2] == 'valid_in' and 'valid' not in inter_component_signals:
-            inter_component_signals['valid'] = deepcopy(signal)
+            for ni_sig in ni_pe.get_port():
+                if signal['name'][:signal['name'].rfind('_')] == ni_sig['name']:
+                    ni_pe_sig_exists = True
+                    break
 
-    print(inter_component_signals)
-    signal_list = list()
+            if ni_pe_sig_exists:
+                ni_router_signals[signal['name'][:signal['name'].rfind('_')]] = deepcopy(signal)
+            else:
+                raise ValueError('Error connecting signal ' + signal['name'] + '. Signals does not exist on PE side.')
 
-    # for node_num, node in enumerate(range(node_count)):
-    #     port_signals = router.get_port()
-    #
-    #     router_sig_list = list()
-    #
-    #     for signal in port_signals:
-    #         signal_tmp = deepcopy(signal)
-    #         signal_tmp['name'] = 'R_' + str(node_num) + '_' + signal_tmp['name']
-    #
-    #         router_sig_list.append(signal_tmp)
-    #
-    #     signal_list.append(router_sig_list)
+        else:
+            general_router_signals[signal['name'][:signal['name'].rfind('_')]] = deepcopy(signal)
 
-    # print(signal_list)
+    # Sort NI / PE signals based on connection
+    for signal in ni_pe.get_port():
+        if signal['name'] not in ni_router_signals.keys():
+            general_ni_signals[signal['name']] = deepcopy(signal)
+
+    conn_if = dict(
+        ni_router=ni_router_signals,
+        inter_router=inter_router_signals,
+        general_ni=general_ni_signals,
+        general_router=general_router_signals
+    )
+
+    return conn_if
 
 
 def build_network(components, output_dir, args, logging):
-    signal_list = list()
-    instant_list = list()
-    port_map_list = list()
 
     vhdl_parts = dict()
 
-    process_components(components, 3)
+    conn_if = process_component_connections(components)
 
     # get_component_parts(components['router'])
-    vhdl_parts['header'] = generate_file_header('Project Bonfire Network File', 2)
+    vhdl_parts['header'] = generate_file_header('Project Bonfire Network File', 3)
     vhdl_parts['entity'] = generate_file_entity('network', None, None)
-    vhdl_parts['arch'] = generate_file_arch('network', 2, components)  # TODO: Implement actual network size reading
+    vhdl_parts['arch'] = generate_file_arch('network', 3, components, conn_if)
 
     vhd_file_contents = vhdl_parts['header'] + vhdl_parts['entity'] + vhdl_parts['arch']
 

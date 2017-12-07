@@ -141,17 +141,24 @@ def generate_file_entity(entity_name, generic, port):
     return entity
 
 
-def generate_file_arch(arch_name, noc_size, component_list):
+def generate_file_arch(arch_name, noc_size, component_list, conn_if):
     """
     Generates Architecture part of a VHDL file
     :param arch_name: Name of the architecture
     :param noc_size: Size of the NoC
     :param component_list: List containing Component objects
+    :param conn_if: Signals for connecting the components together
     :return: A string containing the VHDL architecture
     """
+
+    node_count = noc_size * noc_size
+
+    signal_list = generate_signal_list(conn_if, node_count)
+    component_decl = build_components(component_list, noc_size)
+
     arch_contents = 'architecture behavior of ' + arch_name + ' is\n\n'
-    arch_contents += generate_signal_list(component_list)
-    arch_contents += '\t' + build_components(component_list, noc_size) + '\n'
+    arch_contents += signal_list
+    arch_contents += '\t' + component_decl + '\n'
     arch_contents += 'begin\n'
     arch_contents += '\t<code_placeholder>\n'
     arch_contents += 'end ' + arch_name + ';\n'
@@ -159,14 +166,37 @@ def generate_file_arch(arch_name, noc_size, component_list):
     return arch_contents
 
 
-def generate_signal_list(component_list):
+def generate_signal_list(conn_if, node_count):
 
-    signal_list_str = gen_multi_line_comment(' Signal declarations\n')
-    signal_list_str +='<signal_decl_placeholder>\n'
-    # for component in component_list:
-    #     signal_list_str += component.
+    clk_rst_sig = ['clk', 'reset', 'clock', 'rst']
+
+    signal_list_str = gen_multi_line_comment(' Signal Declarations\n')
+
+    for sig_type, signals in sorted(conn_if.items()):
+        if sig_type == 'general_ni':
+            signal_list_str += '\n-- General PE Signals\n'
+
+        elif sig_type == 'ni_router':
+            signal_list_str += '\n-- Connections Between NI and Router\n'
+
+        elif sig_type == 'inter_router':
+            signal_list_str += '\n-- Inter-Router Connections\n'
+
+        elif sig_type == 'general_router':
+            signal_list_str += '\n-- General Router Signals\n'
+
+        for _, signal in sorted(signals.items()):
+
+            if signal['name'] not in clk_rst_sig:
+                signal_name_list = signal['name'] + '_0'
+
+                for node_num in range(1, node_count):
+                    signal_name_list += ', ' + signal['name'] + '_' + str(node_num)
+
+                signal_list_str += 'signal ' + signal_name_list + ' : ' + signal['type'] + ';\n'
 
     return signal_list_str
+
 
 def gen_component_decl(addr, noc_size, component):
 
@@ -227,8 +257,10 @@ def gen_component_decl(addr, noc_size, component):
 
 def build_components(component_list, noc_size):
 
+    components_str = '\n' + gen_multi_line_comment('Component Declarations')
+
     # Router instantiation
-    components_str = '\n-- Router\n'
+    components_str += '\n-- Router\n'
     components_str += gen_component_decl(0, noc_size, component_list['router'])
 
     # NI_PE instantiation
