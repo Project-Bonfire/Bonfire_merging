@@ -18,7 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from copy import deepcopy
-from Scripts.include.file_generation.vhdl_generation import *
+
+from Scripts.include.file_generation.vhdl.vhd_file_gen import *
 
 
 def process_component_connections(components):
