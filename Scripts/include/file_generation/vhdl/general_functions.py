@@ -47,39 +47,6 @@ def process_lines_into_string(lines, prefix='', suffix='\n', grouping_symbol=', 
     return lines_str
 
 
-def cx_rst_calculator(node_id, network_size):
-    """
-    Calculates the connection bits for a router based on network size and node's id
-    :param node_id:         Address of the node
-    :param network_size:    Network size
-    :return:                Connection bits
-    """
-
-    node_x = node_id % network_size
-    node_y = node_id / network_size
-
-    c_n = 1
-    c_e = 1
-    c_w = 1
-    c_s = 1
-
-    if node_y == 0:
-        c_n = 0
-
-    elif node_y == network_size - 1:
-        c_s = 0
-
-    if node_x == 0:
-        c_w = 0
-
-    elif node_x == network_size - 1:
-        c_e = 0
-
-    cx_rst = c_s * 8 + c_w * 4 + c_e * 2 + c_n
-
-    return cx_rst
-
-
 def gen_multi_line_comment(string, comment_char='-'):
     """
     Tunrs a string into a multi-line comment

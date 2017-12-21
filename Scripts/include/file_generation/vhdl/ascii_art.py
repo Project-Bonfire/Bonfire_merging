@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from Scripts.include.file_generation.vhdl.generic_functions import *
+from Scripts.include.file_generation.vhdl.general_functions import *
 
 
 class ASCIIBuffer:
@@ -101,7 +101,7 @@ def generate_ascii_art(noc_size):
 
         art_buffer.newline()
 
-    title = gen_multi_line_comment('Organizaiton of the Network')
+    title = gen_multi_line_comment('Organization of the Network')
     art_str = process_lines_into_string(art_buffer.get_contents())
 
     return title + '\n' + art_str

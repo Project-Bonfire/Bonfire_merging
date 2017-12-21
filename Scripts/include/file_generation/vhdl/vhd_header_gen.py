@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from Scripts.include.file_generation.vhdl.generic_functions import *
+from Scripts.include.file_generation.vhdl.general_functions import *
 
 
 def generate_copyright_msg():

@@ -1,5 +1,5 @@
 """
-Implements VHDL file arvhitecture generation
+Implements VHDL file architecture generation
 
 Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
 
@@ -17,7 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from Scripts.include.file_generation.vhdl.generic_functions import *
+from Scripts.include.file_generation.vhdl.general_functions import *
+from Scripts.include.file_generation.vhdl.generic_parser import *
 
 
 def generate_signal_list(conn_if, node_count, ident_level):
@@ -31,7 +32,7 @@ def generate_signal_list(conn_if, node_count, ident_level):
         general_router='General Router Signals'
     )
 
-    signal_list_str = gen_multi_line_comment(' Signal Declarations\n')
+    signal_list_str = gen_multi_line_comment('Signal Declarations\nNOTE: Not all of the signals below are actually used')
 
     for sig_type, signals in sorted(conn_if.items()):
 
@@ -59,7 +60,7 @@ def generate_signal_list(conn_if, node_count, ident_level):
     return signal_list_str
 
 
-def generate_port_maps(component_list, node_count, ident_level):
+def generate_port_maps(component_list, node_count, ident_level, noc_size):
 
     group_size = 3
 
@@ -93,7 +94,20 @@ def generate_port_maps(component_list, node_count, ident_level):
             port_map_str = '\n' + ident(ident_level + 1) + 'port map ('
 
             # Process generic map
-            generic_map_str += '<placeholder>);\n'
+            signal_name_list = []
+
+            for signal in component.get_generic():
+
+                generic_signal_value = str(GENERIC_DECISION_LIST[signal['name']](signal['name'], node_num, noc_size))
+
+                generic_signal = signal['name'] + ' => ' + generic_signal_value
+
+                # TODO: ADD SIGNAL TO FILE ENTITY
+
+                signal_name_list.append(generic_signal)
+
+            generic_map_signals = process_lines_into_string(signal_name_list, prefix='\n' + ident(ident_level + 2),
+                                                            suffix=',', block_end_newline=True)[:-2] + '\n'
 
             # Process port map
             signal_name_list = []
@@ -108,8 +122,9 @@ def generate_port_maps(component_list, node_count, ident_level):
                                                          suffix=',', block_end_newline=True)[:-2] + '\n'
 
             port_map_str += port_map_signals + ident(ident_level + 1) + ');'
+            generic_map_str += generic_map_signals + ident(ident_level + 1) + ');'
 
-            components_port_map_str += component_instantiation_line + generic_map_str + port_map_str + '\n\n'
+            components_port_map_str += component_instantiation_line + generic_map_str + '\n' + port_map_str + '\n\n'
 
     return components_port_map_str
 
@@ -142,8 +157,30 @@ def build_components(component_list, noc_size, ident_level):
 
         # Process Generic
         if component.get_generic():
-            generic_list.append(ident(ident_level + 1) + 'generic (<place_holder>);')
+            generic = component.get_generic()
 
+            # Measure maximum signal name length, for formatting purposes
+            max_line_length = max([[len(line['name'])] for line in generic])[0]
+
+            generic_list.append(ident(ident_level + 1) + 'generic (')
+
+            # Process all signals in the port
+            for signal in generic:
+                free_space = (max_line_length - len(signal['name'])) * ' '
+
+                init_str = '' if 'init_value' not in signal else ' := ' + signal['init_value']
+
+                # Build signal line
+                signal = [ident(ident_level + 2),
+                          signal['name'], free_space, ' : ', signal['type'] + init_str + ';']
+
+                signal_str = process_lines_into_string(signal, suffix='')
+
+                generic_list.append(signal_str)
+
+            generic_list[-1] = generic_list[-1][:-1]
+
+            generic_list.append(ident(ident_level + 1) + ');')
             generic_str = process_lines_into_string(generic_list)
 
         # Process Port

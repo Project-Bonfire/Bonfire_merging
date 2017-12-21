@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from Scripts.include.file_generation.vhdl.generic_functions import *
+from Scripts.include.file_generation.vhdl.general_functions import *
 from Scripts.include.file_generation.vhdl import vhd_header_gen
 from Scripts.include.file_generation.vhdl import vhd_arch_gen
 from Scripts.include.file_generation.vhdl.ascii_art import generate_ascii_art
@@ -75,7 +75,7 @@ def generate_file_arch(arch_name, noc_size, component_list, conn_if, ident_level
 
     signal_list = vhd_arch_gen.generate_signal_list(conn_if, node_count, ident_level + 1)
     component_decl = vhd_arch_gen.build_components(component_list, noc_size, ident_level + 1)
-    port_maps = vhd_arch_gen.generate_port_maps(component_list, node_count, ident_level + 1)
+    port_maps = vhd_arch_gen.generate_port_maps(component_list, node_count, ident_level + 1, noc_size)
 
     arch_structure = ['architecture RTL of ' + arch_name + ' is\n',
                       signal_list, component_decl, 'begin', port_maps, 'end RTL;']
