@@ -1,6 +1,6 @@
 """
 Implements redirection of console messages to a log file
-Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
+Copyright (C) 2016 - 2018 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,20 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import time
 
-from Scripts.include.misc.package import LOG_DIR
-
-
-class Logger(object):
-    def __init__(self):
+class Logger:
+    def __init__(self, logfile, stream):
         """
         Implements redirection of console messages to a log file
         """
 
-        self.terminal = sys.stdout
-        self.log = open(LOG_DIR + '/Console_log_' + str(time.time()) + '.log', 'a')
+        self.terminal = stream
+        self.log = open(logfile, 'w')
+        self.log.write('Logging started...\n')
 
     def write(self, message):
         """
@@ -42,4 +38,8 @@ class Logger(object):
         self.log.write(message)
 
     def flush(self):
+        """
+        Not implemented yet
+        :return: None
+        """
         pass

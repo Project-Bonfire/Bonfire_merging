@@ -10,8 +10,8 @@ def statistics(verbal):
     """
     print
     if verbal:
-        if DEBUG: print_msg(MSG_DEBUG, "Opening " + SENT_TXT_PATH)
-        print_msg(MSG_INFO, "Packets sent:")
+        if DEBUG: print_msg(SEVERITY_DEBUG, "Opening " + SENT_TXT_PATH)
+        print_msg(SEVERITY_INFO, "Packets sent:")
     try:
         packets_sent_fp = open(SENT_TXT_PATH, 'r')
         flits_sent = 0
@@ -24,14 +24,14 @@ def statistics(verbal):
 
         packets_sent_fp.close()
     except IOError as e:
-        print_msg(MSG_ERROR, "Open sent.txt: Error " + str(e[0]) + ": " + e[1])
+        print_msg(SEVERITY_ERROR, "Open sent.txt: Error " + str(e[0]) + ": " + e[1])
         sys.exit(1)
 
     # Read received packets
     print
     if verbal:
-        if DEBUG: print_msg(MSG_DEBUG, "Opening " + RECEIVED_TXT_PATH)
-        print_msg(MSG_INFO, "Packets received:")
+        if DEBUG: print_msg(SEVERITY_DEBUG, "Opening " + RECEIVED_TXT_PATH)
+        print_msg(SEVERITY_INFO, "Packets received:")
     try:
         packets_recv_fp = open(RECEIVED_TXT_PATH, 'r')
         flits_recieved = 0
@@ -44,12 +44,12 @@ def statistics(verbal):
 
         packets_recv_fp.close()
     except IOError as e:
-        print_msg(MSG_ERROR, "Open received.txt: Error " + str(e[0]) + ": " + e[1])
+        print_msg(SEVERITY_ERROR, "Open received.txt: Error " + str(e[0]) + ": " + e[1])
         sys.exit(1)
 
     # Display statistics
     print "===================================================================="
-    print_msg(MSG_INFO, "Statistics:")
+    print_msg(SEVERITY_INFO, "Statistics:")
     print "\tPackets sent:\t\t" + str(num_packets_sent)+"\tflits sent:\t" + str(flits_sent)
     print "\tPackets received:\t" + str(num_packets_recv)+"\tflits recieved:\t" + str(flits_recieved)
     print "\tPackets lost: \t\t" + str(num_packets_sent - num_packets_recv)+"\tflits lost:\t" + str(flits_sent-flits_recieved)

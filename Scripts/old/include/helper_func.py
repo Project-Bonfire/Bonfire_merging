@@ -69,7 +69,7 @@ def check_dir(dir_path, create_dir_en):
 
         # Path exists, but is not a file
         if not os.path.isdir(dir_path):
-            print_msg(MSG_WARN, "Directory '" + dir_path \
+            print_msg(SEVERITY_WARN, "Directory '" + dir_path \
                                     + "' already exists, but it's not a directory.\n"
                                     + "To continue, you will need to remove it.")
 
@@ -86,24 +86,24 @@ def check_dir(dir_path, create_dir_en):
 
             # Remove the existing file
             if user_input == "y":
-                print_msg(MSG_INFO, "Removing existing file...")
+                print_msg(SEVERITY_INFO, "Removing existing file...")
                 try:
                     os.remove(dir_path)
                 except OSError as e:
-                    print_msg(MSG_ERROR, "Error " + str(e[0]) + ": " + e[1])
+                    print_msg(SEVERITY_ERROR, "Error " + str(e[0]) + ": " + e[1])
                     return CHECK_DIR_ERROR
 
             elif user_input == "n":
-                print_msg(MSG_ERROR, "Cancelled by user")
+                print_msg(SEVERITY_ERROR, "Cancelled by user")
                 return CHECK_DIR_ERROR
 
             #Create a directory in place of the file
             if create_dir_en:
-                print_msg(MSG_BLUE_INFO, "Creating the directory")
+                print_msg(SEVERITY_BLUE_INFO, "Creating the directory")
                 try:
                     os.makedirs(dir_path)
                 except OSError as e:
-                    print_msg(MSG_ERROR, "Error " + str(e[0]) + ": " + e[1])
+                    print_msg(SEVERITY_ERROR, "Error " + str(e[0]) + ": " + e[1])
                     return CHECK_DIR_ERROR
 
                 return DIR_EXISTS
@@ -113,15 +113,15 @@ def check_dir(dir_path, create_dir_en):
 
         # Directory already exists
         else:
-            print_msg(MSG_BLUE_INFO, "Using existing directory")
+            print_msg(SEVERITY_BLUE_INFO, "Using existing directory")
             return DIR_EXISTS
     else:
         if create_dir_en:
-            print_msg(MSG_BLUE_INFO, "Directory not found. Creating a new one.")
+            print_msg(SEVERITY_BLUE_INFO, "Directory not found. Creating a new one.")
             try:
                 os.makedirs(dir_path)
             except OSError as e:
-                print_msg(MSG_ERROR, "Error " + str(e[0]) + ": " + e[1])
+                print_msg(SEVERITY_ERROR, "Error " + str(e[0]) + ": " + e[1])
                 return CHECK_DIR_ERROR
 
             return DIR_EXISTS

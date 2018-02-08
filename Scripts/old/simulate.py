@@ -20,7 +20,7 @@ try:
     from Scripts.include.viz_traffic import viz_traffic
     Viz = True
 except:
-    print_msg(MSG_INFO, "Can not include the visualizer! Some library is missing. Turning off the visualization!")
+    print_msg(SEVERITY_INFO, "Can not include the visualizer! Some library is missing. Turning off the visualization!")
     Viz = False
 
 from Scripts.include.file_gen import gen_network_and_tb, gen_wave_do
@@ -38,14 +38,14 @@ def main(argv):
         try:
             shutil.rmtree(package.SIMUL_DIR)
         except OSError as e:
-            print_msg(MSG_ERROR, "Error " + str(e[0]) + ": " + e[1])
+            print_msg(SEVERITY_ERROR, "Error " + str(e[0]) + ": " + e[1])
             sys.exit(1)
     try:
         os.makedirs(package.SIMUL_DIR)
         os.makedirs(package.LOG_DIR)
         os.makedirs(package.TRACE_DIR)
     except OSError as e:
-        print_msg(MSG_ERROR, "Error " + str(e[0]) + ": " + e[1])
+        print_msg(SEVERITY_ERROR, "Error " + str(e[0]) + ": " + e[1])
         sys.exit(1)
 
     # Just for getting a copy of the current console
@@ -59,7 +59,7 @@ def main(argv):
     try:
         package.program_argv = arg_parser(argv, package.program_argv, logging)
     except ValueError as e:
-        print_msg(MSG_ERROR, str(e))
+        print_msg(SEVERITY_ERROR, str(e))
         sys.exit(1)
 
     DEBUG = package.program_argv['debug']
@@ -74,16 +74,16 @@ def main(argv):
     wave_do_file_name = gen_wave_do(package.program_argv, flow_control_type)
 
     # Generate simulate.do
-    if DEBUG: print_msg(MSG_DEBUG, "Generating simulation.do")
+    if DEBUG: print_msg(SEVERITY_DEBUG, "Generating simulation.do")
 
     try:
         write_do_file(package.program_argv, net_file_name, net_tb_file_name, wave_do_file_name, logging)
     except IOError as e:
-        print_msg(MSG_ERROR, "Generate simulate.do file: Error " + str(e[0]) + ": " + e[1])
+        print_msg(SEVERITY_ERROR, "Generate simulate.do file: Error " + str(e[0]) + ": " + e[1])
         sys.exit(1)
 
     # Running modelsim
-    if DEBUG: print_msg(MSG_DEBUG, "Running Modelsim...")
+    if DEBUG: print_msg(SEVERITY_DEBUG, "Running Modelsim...")
 
     os.chdir(package.SIMUL_DIR)
     if package.program_argv['command-line'] or package.program_argv['lat']:
@@ -94,7 +94,7 @@ def main(argv):
 
     if return_value != 0:
         logging.error("Error while running Modelsim")
-        print_msg(MSG_ERROR, "Error while running Modelsim")
+        print_msg(SEVERITY_ERROR, "Error while running Modelsim")
         sys.exit(1)
 
     # Latency calculation
@@ -107,11 +107,11 @@ def main(argv):
         latency_command = "python " + package.SCRIPTS_DIR + "/include/" + package.LATENCY_CALCULATION_PATH + " -S " + package.SIMUL_DIR+"/"+package.SENT_TXT_PATH + " -R " + package.SIMUL_DIR+"/"+package.RECEIVED_TXT_PATH
 
 
-        if DEBUG: print_msg(MSG_DEBUG, "Running latency calculator script:\n\t" + latency_command)
+        if DEBUG: print_msg(SEVERITY_DEBUG, "Running latency calculator script:\n\t" + latency_command)
 
         return_value = os.system(latency_command)
         if return_value != 0:
-            print_msg(MSG_ERROR, "Error while running latency calculation script")
+            print_msg(SEVERITY_ERROR, "Error while running latency calculation script")
             sys.exit(1)
 
     else:

@@ -127,7 +127,7 @@ def report_parogram_arguments(program_argv, DEBUG):
     arguments to the console!
     """
     if DEBUG:
-        print_msg(MSG_DEBUG,  "Command line parameters:")
+        print_msg(SEVERITY_DEBUG,  "Command line parameters:")
         for i in program_argv:
             print "\t" + i + ": " + str(program_argv[i])
         print

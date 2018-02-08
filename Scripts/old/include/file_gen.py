@@ -32,11 +32,11 @@ def gen_network_and_tb(program_argv, flow_control_type):
         + (" -trace" if program_argv['trace'] else "") \
         + " -o " + SIMUL_DIR + "/" + net_file_name
 
-    if DEBUG: print_msg(MSG_DEBUG, "Running network generator:\n\t" + net_gen_command)
+    if DEBUG: print_msg(SEVERITY_DEBUG, "Running network generator:\n\t" + net_gen_command)
 
     return_value = os.system(net_gen_command)
     if return_value != 0:
-        print_msg(MSG_ERROR, "Error while running network generation script")
+        print_msg(SEVERITY_ERROR, "Error while running network generation script")
         sys.exit(1)
 
     # Generate testbench
@@ -75,11 +75,11 @@ def gen_network_and_tb(program_argv, flow_control_type):
 
 
 
-    if DEBUG: print_msg(MSG_DEBUG, "Running TB generator:\n\t" + net_tb_gen_command)
+    if DEBUG: print_msg(SEVERITY_DEBUG, "Running TB generator:\n\t" + net_tb_gen_command)
 
     return_value = os.system(net_tb_gen_command)
     if return_value != 0:
-        print_msg(MSG_ERROR, "Error while running network testbench generation script")
+        print_msg(SEVERITY_ERROR, "Error while running network testbench generation script")
         sys.exit(1)
 
     return net_file_name, net_tb_file_name
@@ -100,10 +100,10 @@ def gen_wave_do(program_argv, flow_control_type):
         + (" -o " + SIMUL_DIR + "/" + wave_do_file_name)
 
 
-    if DEBUG: print_msg(MSG_DEBUG, "Running wave.do generator:\n\t" + wave_do_gen_command)
+    if DEBUG: print_msg(SEVERITY_DEBUG, "Running wave.do generator:\n\t" + wave_do_gen_command)
 
     return_value = os.system(wave_do_gen_command)
     if return_value != 0:
-        print_msg(MSG_ERROR, "Error while running wave configuration generation script")
+        print_msg(SEVERITY_ERROR, "Error while running wave configuration generation script")
         sys.exit(1)
     return wave_do_file_name

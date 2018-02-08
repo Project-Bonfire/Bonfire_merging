@@ -1,7 +1,7 @@
 """
 Includes utility functions for the script
 
-Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
+Copyright (C) 2016 - 2018 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,11 +28,11 @@ DIR_EXISTS = 0
 DIR_NOT_EXISTS = 1
 
 # Message types
-MSG_INFO = 0
-MSG_WARN = 1
-MSG_ERROR = 2
-MSG_BLUE_INFO = 3
-MSG_DEBUG = 4
+SEVERITY_INFO = 0
+SEVERITY_WARN = 1
+SEVERITY_ERROR = 2
+SEVERITY_BLUE_INFO = 3
+SEVERITY_DEBUG = 4
 
 
 def max_two_char_diff(string1, string2):
@@ -44,14 +44,16 @@ def max_two_char_diff(string1, string2):
                     only one character difference, False otherwise
     """
 
+    two_char_diff = False
+
     if len(string1) == len(string2):
 
         match = SequenceMatcher(None, string1, string2).find_longest_match(0, len(string1), 0, len(string2))
 
         if len(string1) - match.size < 3:
-            return True
+            two_char_diff = True
 
-    return False
+    return two_char_diff
 
 
 def get_output_path(exec_mode, logger):
@@ -94,7 +96,7 @@ def colorize_text(bold, underlined, string, color=package.COLOR_END):
     """
     Colorize a string for the terminal
     :param bold:        (bool) Should the text be bold
-    :param underlined:   (bool) Should the text be underlined
+    :param underlined:  (bool) Should the text be underlined
     :param string:      (str)  The string to be colorized
     :param color:       (str)  Color code for the text (from package)
     :return:            (str)  Colorized string
@@ -103,36 +105,40 @@ def colorize_text(bold, underlined, string, color=package.COLOR_END):
     bold_str = package.TEXT_TYPE_BOLD if bold else ''
     underlined_str = package.TEXT_TYPE_UNDERLINED if underlined else ''
 
-    return bold_str + underlined_str + color + string + package.COLOR_END
+    colorized_text = bold_str + underlined_str + color + string + package.COLOR_END
+    return colorized_text
 
 
 def print_msg(severity, msg):
+
     """
     Prints a message with a defined severity on the screen
     :param severity:    (int) Message severity (definitions in the beginning of this file)
     :param msg:         (str) Message to be printed
     :return:            None
     """
+    label = ''
+    color = ''
+    
+    if severity == SEVERITY_INFO:
+        label = 'INFO: '
 
-    if severity == MSG_INFO:
-        msg_string = colorize_text(True, False, 'INFO: ') + msg
+    elif severity == SEVERITY_WARN:
+        label = 'WARNING: '
+        color = package.COLOR_YELLOW
 
-    elif severity == MSG_WARN:
-        msg_string = colorize_text(True, False, 'WARNING: ', package.COLOR_YELLOW) + msg
+    elif severity == SEVERITY_ERROR:
+        label = 'ERROR: '
+        color = package.COLOR_RED
 
-    elif severity == MSG_ERROR:
-        msg_string = colorize_text(True, False, 'ERROR: ', package.COLOR_RED) + msg
+    elif severity == SEVERITY_BLUE_INFO:
+        label = 'INFO: '
+        color = package.COLOR_BLUE
 
-    elif severity == MSG_BLUE_INFO:
-        msg_string = colorize_text(True, False, 'INFO: ', package.COLOR_BLUE) + msg
+    elif severity == SEVERITY_DEBUG:
+        label = 'DEBUG: '
 
-    elif severity == MSG_DEBUG:
-        msg_string = colorize_text(True, False, 'DEBUG: ') + msg
-
-    else:
-        msg_string = msg
-
-    print(msg_string)
+    print(colorize_text(True, False, label, color) + msg)
 
 
 def ask_user_input_yn(question):
@@ -145,6 +151,8 @@ def ask_user_input_yn(question):
     input_ok = False
     user_input = input(question)
 
+    user_input = user_input.lower()
+
     while not input_ok:
         if user_input == 'y' or user_input == 'n':
             input_ok = True
@@ -155,12 +163,12 @@ def ask_user_input_yn(question):
     return user_input == 'y'
 
 
-def check_dir(dir_path, create_dir, logger):
+def check_dir(dir_path, create_dir, debug):
     """
     Check if directory exists. If not, it will be created.
     :param dir_path:     (str)   Path to the directory
     :param create_dir:   (bool)  Should the directory be created in case it does not exist
-    :param logger:       (Logger)  Instance to system logger
+    :param debug:        (bool)  If true, print debugging message
     :return:             (int)   -1 In case of an error, a positive value otherwise
     """
 
@@ -169,7 +177,7 @@ def check_dir(dir_path, create_dir, logger):
 
         # Path exists, but is not a file
         if not os.path.isdir(dir_path):
-            print_msg(MSG_WARN, 'File \'' + dir_path +
+            print_msg(SEVERITY_WARN, 'File \'' + dir_path +
                       '\' already exists, but it is not a directory.\n'
                       'To continue, you will need to remove it.')
 
@@ -177,16 +185,18 @@ def check_dir(dir_path, create_dir, logger):
 
             # Remove the existing file
             if user_input:  # User said 'yes'
-                logger.info(dir_path + ': Removing existing file...')
+                if debug:
+                    print_msg(SEVERITY_DEBUG, dir_path + ': Removing existing file...')
 
                 os.remove(dir_path)
 
             else:  # User said 'no'
-                raise ValueError('Operation was cancelled by user')
+                raise RuntimeError('Operation was cancelled by user')
 
             # Create a directory in place of the file
             if create_dir:
-                logger.info(dir_path + ': Creating the directory')
+                if debug:
+                    print_msg(SEVERITY_DEBUG, dir_path + ': Creating the directory')
 
                 os.makedirs(dir_path)
 
@@ -197,12 +207,14 @@ def check_dir(dir_path, create_dir, logger):
 
         # Directory already exists
         else:
-            logger.info(dir_path + ': Using existing directory')
+            if debug:
+                print_msg(SEVERITY_DEBUG, dir_path + ': Using existing directory')
             return DIR_EXISTS
 
     else:
         if create_dir:
-            logger.info('Directory ' + dir_path + 'not found. Creating it.')
+            if debug:
+                print_msg(SEVERITY_DEBUG, 'Directory ' + dir_path + 'not found. Creating it.')
 
             os.makedirs(dir_path)
 

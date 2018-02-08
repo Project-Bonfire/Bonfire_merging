@@ -1,7 +1,7 @@
 """
 Constant declarations for the Bonfire script
 
-Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
+Copyright (C) 2016 - 2018 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -50,7 +50,6 @@ SIMUL_DIR = TMP_DIR + '/simul_temp'
 SYNTH_DIR = TMP_DIR + '/synth_temp'
 FPGA_DIR = TMP_DIR + '/fpga_temp'
 LOG_DIR = TMP_DIR + '/logs'
-TRACE_DIR = TMP_DIR + '/traces'
 
 # Configurations
 CONFIG_DIR = PROJECT_ROOT + '/Configs'
