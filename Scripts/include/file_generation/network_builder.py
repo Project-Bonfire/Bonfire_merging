@@ -74,10 +74,13 @@ def process_component_connections(components):
         general_router=general_router_signals
     )
 
+    print('===================================================')
+    print(conn_if)
+
     return conn_if
 
 
-def build_network(components, output_dir, args, logging):
+def build_network(components, output_dir, args, logger):
 
     vhdl_parts = dict()
     ident_level = 0

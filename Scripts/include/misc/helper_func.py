@@ -76,6 +76,8 @@ def get_output_path(exec_mode, logger):
     else:
         raise ValueError("Unknown output. How did we get here???")
 
+    logger.debug('Selected output path: ' + output_dir)
+
     check_dir(output_dir, True, logger)
 
     return output_dir

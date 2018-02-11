@@ -77,39 +77,37 @@ def main():
         print_msg(SEVERITY_ERROR, 'Cannot open logfile: ' + str(err))
         return package.FAILURE
 
+    ''' Read configurations'''
+    config_file, exec_mode = extract_config_path(args)
 
-    # config_file, exec_mode = extract_config_path(args)
-    #
-    # try:
-    #     config = read_config(config_file, exec_mode, True, logging)
-    #
-    # except FileNotFoundError as err:
-    #     print_msg(SEVERITY_ERROR, 'Cannot open config file: ' + str(err))
-    #     return package.FAILURE
-    #
-    # except yaml.scanner.ScannerError as err:
-    #     print_msg(SEVERITY_ERROR, 'Syntax error while reading config file: \n' + str(err))
-    #     return package.FAILURE
-    #
-    # except (ValueError, RuntimeError) as err:
-    #     print_msg(SEVERITY_ERROR, str(err))
-    #     return package.FAILURE
-    #
-    # # Parse the VHDL files for building the NW file and the TB
-    # try:
-    #     network_components = parse_vhdl(config, logging)  # TODO: Actually do something with the parsed entities
-    #
-    # except (FileNotFoundError, RuntimeError, ValueError) as err:
-    #     print_msg(SEVERITY_ERROR, str(err))
-    #     return package.FAILURE
-    #
-    # # Get the output directory
-    # output_dir = get_output_path(exec_mode, logging)
-    #
-    # print(output_dir)
-    #
-    # # Build the network
-    # build_network(network_components, output_dir, args, logging)
+    try:
+        config = read_config(config_file, exec_mode, True, logger)
+
+    except FileNotFoundError as err:
+        print_msg(SEVERITY_ERROR, 'Cannot open config file: ' + str(err))
+        return package.FAILURE
+
+    except yaml.scanner.ScannerError as err:
+        print_msg(SEVERITY_ERROR, 'Syntax error while reading config file: \n' + str(err))
+        return package.FAILURE
+
+    except (ValueError, RuntimeError) as err:
+        print_msg(SEVERITY_ERROR, str(err))
+        return package.FAILURE
+
+    ''' Parse the VHDL files for building the NW file and the TB '''
+    try:
+        network_components = parse_vhdl(config, logger)
+
+    except (FileNotFoundError, RuntimeError, ValueError) as err:
+        print_msg(SEVERITY_ERROR, str(err))
+        return package.FAILURE
+
+    # Get the output directory
+    output_dir = get_output_path(exec_mode, logger)
+
+    # Build the network
+    build_network(network_components, output_dir, args, logger)
 
     return package.SUCCESS
 
