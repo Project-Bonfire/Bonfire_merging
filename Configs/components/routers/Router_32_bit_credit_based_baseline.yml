@@ -1,0 +1,8 @@
+files:
+    - Router/allocator/allocator_baseline.vhd,
+    - Router/allocator/arbiter_in_baseline.vhd,
+    - Router/allocator/arbiter_out_baseline.vhd,
+    - Router/fifo/FIFO_one_hot_credit_based_baseline.vhd,
+    - Router/lbdr/LBDR_baseline.vhd,
+    - Router/xbar/xbar_baseline.vhd,
+    - Router/Router_32_bit_credit_based_baseline.vhd

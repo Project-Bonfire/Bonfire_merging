@@ -109,7 +109,6 @@ def read_config(config_file, exec_mode, top_level_conf, logger):
                 # From this point all we can assume all the needed fields exist in the file
                 # Recursively read the configuration
                 config['simulation_config'] = yaml_config['simulation_config']
-                config['network_template'] = yaml_config['network_template']
                 config['router'] = read_config(os.path.join(package.ROUTERS_CONF_DIR,
                                                             yaml_config['router'] + '.yml'),
                                                exec_mode, False, logger)['files']

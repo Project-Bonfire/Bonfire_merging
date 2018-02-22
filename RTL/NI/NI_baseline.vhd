@@ -24,7 +24,7 @@ entity NI is
    generic(current_x : integer := 10; 	-- the current node's x
            current_y : integer := 10; 	-- the current node's y
            NI_depth : integer := 32;
-           NI_couter_size: integer:= 5; -- should be set to log2 of NI_depth
+           NI_counter_size: integer:= 5; -- should be set to log2 of NI_depth
            reserved_address : std_logic_vector(29 downto 0) := "000000000000000001111111111111"; -- NI's memory mapped reserved
            flag_address : std_logic_vector(29 downto 0) :=     "000000000000000010000000000000";  -- reserved address for the flag register
            counter_address : std_logic_vector(29 downto 0) :=     "000000000000000010000000000001");  -- packet counter register address!
@@ -61,8 +61,8 @@ architecture logic of NI is
   -- this old address is put here to make it compatible with Plasma processor!
   signal old_address: std_logic_vector(31 downto 2);
 
-  signal P2N_FIFO_read_pointer, P2N_FIFO_read_pointer_in: std_logic_vector(NI_couter_size-1 downto 0);
-  signal P2N_FIFO_write_pointer, P2N_FIFO_write_pointer_in: std_logic_vector(NI_couter_size-1 downto 0);
+  signal P2N_FIFO_read_pointer, P2N_FIFO_read_pointer_in: std_logic_vector(NI_counter_size-1 downto 0);
+  signal P2N_FIFO_write_pointer, P2N_FIFO_write_pointer_in: std_logic_vector(NI_counter_size-1 downto 0);
   signal P2N_write_en: std_logic;
 
   type MEM is array (0 to NI_depth-1) of std_logic_vector(31 downto 0);
@@ -86,8 +86,8 @@ architecture logic of NI is
 
   signal N2P_Data_out : std_logic_vector(31 downto 0);
 
-  signal N2P_FIFO_read_pointer, N2P_FIFO_read_pointer_in: std_logic_vector(NI_couter_size-1 downto 0);
-  signal N2P_FIFO_write_pointer, N2P_FIFO_write_pointer_in: std_logic_vector(NI_couter_size-1 downto 0);
+  signal N2P_FIFO_read_pointer, N2P_FIFO_read_pointer_in: std_logic_vector(NI_counter_size-1 downto 0);
+  signal N2P_FIFO_write_pointer, N2P_FIFO_write_pointer_in: std_logic_vector(NI_counter_size-1 downto 0);
 
   signal N2P_full, N2P_empty: std_logic;
   signal N2P_read_en, N2P_read_en_in, N2P_write_en: std_logic;

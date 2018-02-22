@@ -98,7 +98,11 @@ def generate_port_maps(component_list, node_count, ident_level, noc_size):
 
             for signal in component.get_generic():
 
-                generic_signal_value = str(GENERIC_DECISION_LIST[signal['name']](signal['name'], node_num, noc_size))
+                try:
+                    generic_signal_value = str(GENERIC_DECISION_LIST[signal['name']](signal['name'], node_num, noc_size))
+                except KeyError:
+                    raise RuntimeError('Unknown generic signal: ' + signal['name'] + ' (in ' + component.get_name() + ')'
+                                       + ' - Add a parsing rule to GENERIC_DECISION_LIST in generic_parse.py')
 
                 generic_signal = signal['name'] + ' => ' + generic_signal_value
 

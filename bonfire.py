@@ -107,7 +107,11 @@ def main():
     output_dir = get_output_path(exec_mode, logger)
 
     # Build the network
-    build_network(network_components, output_dir, args, logger)
+    try:
+        build_network(network_components, output_dir, args, logger)
+    except RuntimeError as err:
+        print_msg(SEVERITY_ERROR, str(err))
+        return package.FAILURE
 
     return package.SUCCESS
 
