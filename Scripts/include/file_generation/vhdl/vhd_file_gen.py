@@ -76,9 +76,11 @@ def generate_file_arch(arch_name, noc_size, component_list, conn_if, ident_level
     signal_list = vhd_arch_gen.generate_signal_list(conn_if, node_count, ident_level + 1)
     component_decl = vhd_arch_gen.build_components(component_list, noc_size, ident_level + 1)
     port_maps = vhd_arch_gen.generate_port_maps(component_list, node_count, ident_level + 1, noc_size)
+    connections = vhd_arch_gen.generate_connections(conn_if, node_count, ident_level + 1)
 
+    # Defines how architexture is built
     arch_structure = ['architecture RTL of ' + arch_name + ' is\n',
-                      signal_list, component_decl, 'begin', port_maps, 'end RTL;']
+                      signal_list, component_decl, 'begin', port_maps, connections, 'end RTL;']
 
     arch_str = process_lines_into_string(arch_structure)
 

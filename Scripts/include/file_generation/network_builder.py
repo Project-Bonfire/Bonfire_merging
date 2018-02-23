@@ -46,6 +46,10 @@ def process_component_connections(components):
         if signal_port in inter_router_ports:
             inter_router_signals[signal['name'][:signal['name'].rfind('_')]] = deepcopy(signal)
 
+            # Generalize signal name
+            inter_router_signals[signal['name'][:signal['name'].rfind('_')]]['name'] = \
+                signal['name'][:signal['name'].rfind('_')]
+
         elif signal_port == '_l':
             ni_pe_sig_exists = False
 

@@ -21,7 +21,101 @@ from Scripts.include.file_generation.vhdl.general_functions import *
 from Scripts.include.file_generation.vhdl.generic_parser import *
 
 
+def generate_opposite_port_name(port_name):
+
+    if port_name == 'tx':
+        opposite_name = 'rx'
+
+    elif '_out' in port_name:
+        opposite_name = port_name[:port_name.rfind('_')] + '_in'
+
+    else:
+        raise RuntimeError('Portname has unknown format. Cannot parse: ' + port_name)
+
+    return opposite_name
+
+
+def generate_connections(conn_if, node_count, ident_level):
+
+    inter_router_ports = ['_n', '_e', '_w', '_s']
+
+    group_size = 3
+
+    comment_dict = dict(
+        general_ni='General PE Signals',
+        ni_router='Connections Between NI and Router',
+        inter_router='Inter-Router Connections',
+        general_router='General Router Signals'
+    )
+
+    signal_list_str = gen_multi_line_comment('Connecting signals')
+
+    signal_list_str += '\n---- ' + comment_dict['inter_router'] + ' ----\n\n'
+
+    connectivity_matrix = connectivity_matrix_calculator(3)
+
+    print(connectivity_matrix)
+
+    for node, connections in sorted(connectivity_matrix.items()):
+        print(node, connections)
+
+        node_connections = list()
+
+        potential_neighbors = [node - 3, node + 1, node - 1, node + 3]
+
+        # Find connecting signals for all nodes
+        for index, connection in enumerate(connections):
+            if connection is not None:
+                for signal_name in sorted(conn_if['inter_router']):
+
+                    if signal_name == 'tx' or '_out' in signal_name:
+                        current_sig = signal_name + inter_router_ports[index] + '_' + str(node)
+
+                        connecting_sig = generate_opposite_port_name(signal_name) \
+                                         + list(reversed(inter_router_ports))[index] \
+                                         + '_' + str(potential_neighbors[index])
+
+                        node_connections.append(connecting_sig + ' <= ' + current_sig)
+
+        signal_list_str += '-- ' + 'Connecting router ' + str(node) + ' outputs\n'
+        signal_list_str += process_lines_into_string(sorted(node_connections),
+                                                     prefix=ident(ident_level),
+                                                     suffix=';\n',
+                                                     block_end_newline=True)
+
+    for node, connections in sorted(connectivity_matrix.items()):
+        print(node, connections)
+
+        node_connections = list()
+
+        potential_neighbors = [node - 3, node + 1, node - 1, node + 3]
+
+        # Find connecting signals for all nodes
+        for index, connection in enumerate(connections):
+            if connection is not None:
+                for signal_name in sorted(conn_if['ni_router']):
+                    print(signal_name)
+        #             if signal_name == 'tx' or '_out' in signal_name:
+        #                 current_sig = signal_name + inter_router_ports[index] + '_' + str(node)
+        #
+        #                 connecting_sig = generate_opposite_port_name(signal_name) \
+        #                                  + list(reversed(inter_router_ports))[index] \
+        #                                  + '_' + str(potential_neighbors[index])
+        #
+        #                 node_connections.append(connecting_sig + ' <= ' + current_sig)
+        #
+        # signal_list_str += '-- ' + 'Connecting router ' + str(node) + ' outputs\n'
+        # signal_list_str += process_lines_into_string(sorted(node_connections),
+        #                                              prefix=ident(ident_level),
+        #                                              suffix=';\n',
+        #                                              block_end_newline=True)
+
+    return signal_list_str
+
+
 def generate_signal_list(conn_if, node_count, ident_level):
+
+    inter_router_ports = ['_n', '_e', '_w', '_s']
 
     group_size = 3
 
@@ -49,10 +143,22 @@ def generate_signal_list(conn_if, node_count, ident_level):
             # Do not declare clock and reset signals
             if signal['name'] not in CLK_RST_SIG_NAMES:
 
-                # Generate a signal for each node
-                signal_name_list = [signal['name'] + '_' + str(node) for node in range(node_count)]
+                signal_name_list = list()
 
-                signal_list_str += process_lines_into_string(signal_name_list, group_size=group_size,
+                # For inter-router signals generate an entry for all ports
+                if sig_type == 'inter_router':
+                    for port in inter_router_ports:
+                        signal_name_list.append(signal['name'] + port)
+                else:
+                    signal_name_list.append(signal['name'])
+
+                # Have an entry for all nodes
+                signal_name_list_with_node = list()
+                for node in range(node_count):
+                    for sig_name in signal_name_list:
+                        signal_name_list_with_node.append(sig_name + '_' + str(node))
+
+                signal_list_str += process_lines_into_string(signal_name_list_with_node, group_size=group_size,
                                                              prefix=ident(ident_level) + 'signal ',
                                                              suffix=' : ' + signal['type'] + ';\n',
                                                              block_end_newline=True)

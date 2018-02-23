@@ -17,7 +17,106 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from copy import deepcopy
+
 CLK_RST_SIG_NAMES = ['clk', 'reset', 'clock', 'rst']
+
+
+def cx_rst_calculator(_, node_id, network_size):
+    """
+    Calculates the connection bits for a router based on network size and node's id
+    :param:     node_id:       Address of the current node
+    :param:     network_size:  Size of the network
+    :return:                   Connection bits
+    """
+
+    node_x = node_id % network_size
+    node_y = node_id / network_size
+
+    c_n = 1
+    c_e = 1
+    c_w = 1
+    c_s = 1
+
+    if node_y == 0:
+        c_n = 0
+
+    elif node_y == network_size - 1:
+        c_s = 0
+
+    if node_x == 0:
+        c_w = 0
+
+    elif node_x == network_size - 1:
+        c_e = 0
+
+    cx_rst = c_s * 8 + c_w * 4 + c_e * 2 + c_n
+
+    return cx_rst
+
+
+def connectivity_matrix_calculator(network_size):
+    """
+    Returns connectivity bits as a list of ones and zeroes
+    :param:     network_size:  Size of the network
+    :return:                X coordinate of the current node
+    """
+
+    connectivity_matrix = dict()
+
+    node_count = network_size ** 2
+
+    for node in range(node_count):
+
+        neighbors = list()
+
+        # Calculate connectivity bits
+        connectivity = cx_rst_calculator(None, node, network_size)
+        connectivity_list = list(map(int, bin(connectivity)[2:].zfill(4)))
+
+        potential_neighbors = [node + network_size, node - 1, node + 1, node - network_size]
+
+        # Check if potential neighbors actually exist in current network
+        for index, neighbor in enumerate(potential_neighbors):
+
+            append_value = None
+            if connectivity_list[index] != 0 and -1 < neighbor < node_count:
+                append_value = neighbor
+
+            neighbors.append(append_value)
+
+        # Store neighbor information for node in the matrix
+        connectivity_matrix[node] = deepcopy(list(reversed(neighbors)))
+
+    return connectivity_matrix
+
+
+def current_x_calculator(_, node_id, network_size):
+    """
+    Calculates the current node's x coordinate from address
+    :param:     node_id:       Address of the current node
+    :param:     network_size:  Size of the network
+    :return:                X coordinate of the current node
+    """
+
+    print(network_size)
+
+    node_x = node_id % network_size
+
+    return node_x
+
+
+def current_y_calculator(_, node_id, network_size):
+    """
+    Calculates the current node's y coordinate from address
+    :param:     node_id:       Address of the current node
+    :param:     network_size:  Size of the network
+    :return:                   Y coordinate of the current node
+    """
+
+    node_y = int(node_id / network_size)
+
+    return node_y
 
 
 def process_lines_into_string(lines, prefix='', suffix='\n', grouping_symbol=', ',
