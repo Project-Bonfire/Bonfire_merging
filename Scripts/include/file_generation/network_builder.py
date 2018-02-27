@@ -60,6 +60,8 @@ def process_component_connections(components):
 
             if ni_pe_sig_exists:
                 ni_router_signals[signal['name'][:signal['name'].rfind('_')]] = deepcopy(signal)
+                ni_router_signals[signal['name'][:signal['name'].rfind('_')]]['name'] = \
+                    signal['name'][:signal['name'].rfind('_')]
             else:
                 raise ValueError('Error connecting signal ' + signal['name'] + '. Signals does not exist on PE side.')
 

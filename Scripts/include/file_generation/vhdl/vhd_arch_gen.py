@@ -83,33 +83,6 @@ def generate_connections(conn_if, node_count, ident_level):
                                                      suffix=';\n',
                                                      block_end_newline=True)
 
-    for node, connections in sorted(connectivity_matrix.items()):
-        print(node, connections)
-
-        node_connections = list()
-
-        potential_neighbors = [node - 3, node + 1, node - 1, node + 3]
-
-        # Find connecting signals for all nodes
-        for index, connection in enumerate(connections):
-            if connection is not None:
-                for signal_name in sorted(conn_if['ni_router']):
-                    print(signal_name)
-        #             if signal_name == 'tx' or '_out' in signal_name:
-        #                 current_sig = signal_name + inter_router_ports[index] + '_' + str(node)
-        #
-        #                 connecting_sig = generate_opposite_port_name(signal_name) \
-        #                                  + list(reversed(inter_router_ports))[index] \
-        #                                  + '_' + str(potential_neighbors[index])
-        #
-        #                 node_connections.append(connecting_sig + ' <= ' + current_sig)
-        #
-        # signal_list_str += '-- ' + 'Connecting router ' + str(node) + ' outputs\n'
-        # signal_list_str += process_lines_into_string(sorted(node_connections),
-        #                                              prefix=ident(ident_level),
-        #                                              suffix=';\n',
-        #                                              block_end_newline=True)
-
     return signal_list_str
 
 
@@ -149,6 +122,9 @@ def generate_signal_list(conn_if, node_count, ident_level):
                 if sig_type == 'inter_router':
                     for port in inter_router_ports:
                         signal_name_list.append(signal['name'] + port)
+                elif sig_type == 'ni_router':
+                    signal_name_list.append(signal['name'] + '_ni')
+                    signal_name_list.append(signal['name'] + '_l')
                 else:
                     signal_name_list.append(signal['name'])
 
@@ -166,7 +142,7 @@ def generate_signal_list(conn_if, node_count, ident_level):
     return signal_list_str
 
 
-def generate_port_maps(component_list, node_count, ident_level, noc_size):
+def generate_port_maps(conn_if, component_list, node_count, ident_level, noc_size):
 
     group_size = 3
 
@@ -186,7 +162,8 @@ def generate_port_maps(component_list, node_count, ident_level, noc_size):
     for component_type, component in sorted(component_list.items()):
 
         if component_type not in component_names.keys():
-            raise ValueError('Unknown component type... This should never happen. Something went REALLY wrong.')
+            raise ValueError('generate_port_maps(): Unknown component type... '
+                             'This should never happen. Something went REALLY wrong.')
         else:
             components_port_map_str += '\n' + comment_dict[component_type] + '\n'
 
@@ -223,7 +200,18 @@ def generate_port_maps(component_list, node_count, ident_level, noc_size):
             signal_name_list = []
 
             for signal in component.get_port():
-                signal_suffix = '_' + str(node_num) if signal['name'] not in CLK_RST_SIG_NAMES else ''
+
+                signal_suffix = ''
+
+                if signal['name'] not in CLK_RST_SIG_NAMES:
+
+                    if signal['name'] in conn_if['ni_router']:
+                        signal_suffix = '_ni_' + str(node_num)
+
+                    else:
+                        signal_suffix = '_' + str(node_num)
+
+                # signal_suffix = '_' + str(node_num) if signal['name'] not in CLK_RST_SIG_NAMES else ''
 
                 signal_name_list.append(signal['name'] + signal_suffix)
 
