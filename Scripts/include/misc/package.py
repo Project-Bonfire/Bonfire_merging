@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+from Scripts.include.file_generation.vhdl.general_functions import *
 
 EXEC_TYPE_SIMUL = 0
 EXEC_TYPE_SYNTH = 1
@@ -78,6 +79,9 @@ ROUTER_RTL_DIR = RTL_DIR + '/Router'
 NI_RTL_DIR = RTL_DIR + '/NI'
 PROCESSOR_RTL_DIR = RTL_DIR + '/Processor'
 
+
+DEFAULT_NOC_SIZE = 2
+
 ROUTER_DEFAULTS = dict(
     current_address=0,
     shmu_address=0,
@@ -88,62 +92,46 @@ ROUTER_DEFAULTS = dict(
     self_diagnosis_address=0
 )
 
-# # Subfolders
-# SCRIPTS_DIR = PROJECT_ROOT + '/Scripts'
-# TEST_DIR = PROJECT_ROOT + '/Test'
-# ROUTER_RTL_DIR = PROJECT_ROOT + '/RTL/Router'
-# IMMORTAL_CHIP_DIR = PROJECT_ROOT + '/RTL/Chip_Designs/archive/IMMORTAL_Chip_2017/With_checkers'
-# IMMORTAL_CHIP_FI_DIR = PROJECT_ROOT + '/RTL/Chip_Designs/IMMORTAL_Chip_2017/network_files'
-# FAULT_MANAGEMENT_RTL_DIR = PROJECT_ROOT + '/RTL/Fault_Management'
-# CHECKERS_DIR = '/Checkers/Modules_with_checkers_integrated/All_checkers'
-#
-#
-# # Flow control suffixes
-# CREDIT_BASED_SUFFIX = 'credit_based'
-#
-# # Script names
-# NET_GEN_SCRIPT = 'network_gen_parameterized'
-# NET_TB_GEN_SCRIPT = 'network_tb_gen_parameterized'
-# WAVE_DO_GEN_SCRIPT = 'wave_do_gen'
-# SIMUL_DO_SCRIPT = 'simulate.do'
-# RECEIVED_TXT_PATH = 'received.txt'
-# SENT_TXT_PATH = 'sent.txt'
-# LATENCY_CALCULATION_PATH = 'calculate_latency.py'
-#
-# # Default simulation configuration
-# program_argv = {
-#         'network_dime':    4,
-#         'credit_based_FC': False,
-#         'add_parity':      False,
-#         'add_checkers':    False,
-#         'packet_drop':     False,
-#         'add_NI':          -1,
-#         'NI_Test':         False,
-#         'add_FI':          False,
-#         'add_FC':          False,
-#         'add_FO':          False,
-#         'add_SHMU':        False,
-#         'rand':            -1,
-#         'BR':              -1,
-#         'PS':              [3,8],
-#         'sim':             -1,
-#         'end':             -1,
-#         'lat':             False,
-#         'debug':           False,
-#         'trace':           False,
-#         'verilog':         False,
-#         'command-line':    False,
-#     }
-#
-# # Debug mode is off by default
-# DEBUG = False
-#
-# # fault injection settings
-# FAULT_RANDOM_SEED = None        # set to None if you want random randomness
-# Fault_Per_Second = 90000000
-# HIGH_FAULT_RATE = 1.1
-# MEDIUM_FAULT_RATE = 1
-# LOW_FAULT_RATE = 0.9
-#
-# MTB_INTERMITTENT_BURST = 100   # mean time between intermittent fault bursts
-# EVENTS_PER_BURST = 10
+"""
+Describes and action which should be done to generics when generic map is analyzed.
+Keys in the dict below represent the generic names.
+
+Each generic will be called as a function with the following parameters:
+    name: name of the generic
+    node_id: ID if the current node
+    network_size: size of the network
+
+Adding new generics:
+* return a constant (or easily calculable value): use a lambda function.
+* using a real function: specify the name of the function (without parameter declaration)
+"""
+
+GENERIC_DECISION_LIST = dict(
+    # General network_component parameters
+    current_address=lambda name, node_id, network_size: node_id,
+    noc_size=lambda name, node_id, network_size: name,
+    data_width=lambda name, node_id, network_size: name,
+    noc_size_x=lambda name, node_id, network_size: network_size,
+
+    # Fault managements
+    shmu_address=lambda name, node_id, network_size: name,
+    self_diagnosis_address=lambda name, node_id, network_size: name,
+    reconfiguration_address=lambda name, node_id, network_size: name,
+    healthy_counter_threshold=lambda name, node_id, network_size: name,
+    faulty_counter_threshold=lambda name, node_id, network_size: name,
+    counter_depth=lambda name, node_id, network_size: name,
+
+    # NI connection
+    reserved_address=lambda name, node_id, network_size: name,
+    flag_address=lambda name, node_id, network_size: name,
+    counter_address=lambda name, node_id, network_size: name,
+    current_x=current_x_calculator,
+    current_y=current_y_calculator,
+    ni_depth=lambda name, node_id, network_size: 32,  # TODO: Make it parameterizable
+    ni_counter_size=lambda name, node_id, network_size: 5,  # TODO: It should be log2 if ni_depth
+
+    # Router configuration
+    rxy_rst=lambda name, node_id, network_size: 10,  # TODO: CHANGING ROUTING BITS IS NOT IMPLEMENTED
+    cx_rst=cx_rst_calculator
+)
+

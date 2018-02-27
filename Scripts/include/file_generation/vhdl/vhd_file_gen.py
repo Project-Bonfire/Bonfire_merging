@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from Scripts.include.file_generation.vhdl.general_functions import *
 from Scripts.include.file_generation.vhdl import vhd_header_gen
+from Scripts.include.file_generation.vhdl import vhd_entity_gen
 from Scripts.include.file_generation.vhdl import vhd_arch_gen
 from Scripts.include.file_generation.vhdl.ascii_art import generate_ascii_art
 
@@ -51,36 +52,52 @@ def generate_file_header(file_descr, noc_size):
 
 
 # TODO: IMPLEMENT ENTITY GENERATION
-def generate_file_entity(entity_name, generic, port, ident_level):
+def generate_file_entity(entity_name, conn_if, design_generation, ident_level, logger):
 
+    port = vhd_entity_gen.generate_entity(conn_if, design_generation)
+    print(conn_if)
     entity = 'entity ' + entity_name + ' is\n'
-    entity += '\tgeneric(' + '<generic_placeholder>' + ');\n'
-    entity += '\tport(' + '<port_placeholder>' + ');\n'
+    entity += '\tgeneric(' + '' + ');\n'
+    entity += '\tport(' + '' + ');\n'
     entity += 'end ' + entity_name + ';\n\n'
 
     return entity
 
 
-def generate_file_arch(arch_name, noc_size, component_list, conn_if, ident_level):
+def generate_file_arch(arch_name, noc_size, component_list, conn_if, ident_level, logger):
     """
     Generates Architecture part of a VHDL file
-    :param arch_name: Name of the architecture
-    :param noc_size: Size of the NoC
-    :param component_list: List containing Component objects
-    :param conn_if: Signals for connecting the components together
+    :param arch_name:       Name of the architecture
+    :param noc_size:        Size of the NoC
+    :param component_list:  List containing Component objects
+    :param conn_if:         Signals for connecting the components together
+    :param ident_level:     How much to ident the code
+    :param logger:          Logging
     :return: A string containing the VHDL architecture
     """
 
     node_count = noc_size * noc_size
 
+    logger.debug('\t\tBuilding Signal List')
     signal_list = vhd_arch_gen.generate_signal_list(conn_if, node_count, ident_level + 1)
-    component_decl = vhd_arch_gen.build_components(component_list, noc_size, ident_level + 1)
+
+    logger.debug('\t\tBuilding Component Declarations')
+    component_decl = vhd_arch_gen.build_component_decl(component_list, noc_size, ident_level + 1)
+
+    logger.debug('\t\tBuilding Port Maps')
     port_maps = vhd_arch_gen.generate_port_maps(conn_if, component_list, node_count, ident_level + 1, noc_size)
+
+    logger.debug('\t\tConnecting Components')
     connections = vhd_arch_gen.generate_connections(conn_if, node_count, ident_level + 1)
 
     # Defines how architecture is built
     arch_structure = ['architecture RTL of ' + arch_name + ' is\n',
-                      signal_list, component_decl, 'begin', port_maps, connections, 'end RTL;']
+                      signal_list,
+                      component_decl,
+                      'begin',
+                      port_maps,
+                      connections,
+                      'end RTL;']
 
     arch_str = process_lines_into_string(arch_structure)
 

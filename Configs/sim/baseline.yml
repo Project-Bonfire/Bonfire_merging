@@ -1,5 +1,5 @@
 simulation_config:
-    network_size: 2
+    network_size: 3
     simulation_time: 10us
 
 router: Router_32_bit_credit_based_baseline

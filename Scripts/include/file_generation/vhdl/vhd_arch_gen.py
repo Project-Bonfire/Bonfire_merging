@@ -17,8 +17,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from Scripts.include.misc.package import *
 from Scripts.include.file_generation.vhdl.general_functions import *
-from Scripts.include.file_generation.vhdl.generic_parser import *
+
+INTER_ROUTER_SUFFICES = ['_n', '_e', '_w', '_s']
+
+SIGNAL_GROUP_SIZE = 3
+
+VALID_COMOPONENT_TYPES = [
+    'general_ni',
+    'ni_router',
+    'inter_router',
+    'general_router',
+    'design_signal'
+]
 
 
 def generate_opposite_port_name(port_name):
@@ -45,7 +57,7 @@ def generate_connections(conn_if, node_count, ident_level):
         general_ni='General PE Signals',
         ni_router='Connections Between NI and Router',
         inter_router='Inter-Router Connections',
-        general_router='General Router Signals'
+        general_router='General Router Signals',
     )
 
     signal_list_str = gen_multi_line_comment('Connecting signals')
@@ -54,10 +66,7 @@ def generate_connections(conn_if, node_count, ident_level):
 
     connectivity_matrix = connectivity_matrix_calculator(3)
 
-    print(connectivity_matrix)
-
     for node, connections in sorted(connectivity_matrix.items()):
-        print(node, connections)
 
         node_connections = list()
 
@@ -88,27 +97,27 @@ def generate_connections(conn_if, node_count, ident_level):
 
 def generate_signal_list(conn_if, node_count, ident_level):
 
-    inter_router_ports = ['_n', '_e', '_w', '_s']
-
-    group_size = 3
-
-    comment_dict = dict(
+    sig_decl_comments = dict(
         general_ni='General PE Signals',
         ni_router='Connections Between NI and Router',
         inter_router='Inter-Router Connections',
-        general_router='General Router Signals'
+        general_router='General Router Signals',
+
+        design_signal='Signals connected to DUT'
     )
 
-    signal_list_str = gen_multi_line_comment('Signal Declarations\nNOTE: Not all of the signals below are actually used')
+    signal_list_str = gen_multi_line_comment('Signal Declarations\n'
+                                             'NOTE: Not all of the signals below are actually used')
 
     for sig_type, signals in sorted(conn_if.items()):
 
         # Generate a comment describing the current signal group that is being processed
-        if sig_type not in comment_dict.keys():
-            raise ValueError('Unknown signal group... This should never happen. Something went REALLY wrong.')
+        if sig_type not in VALID_COMOPONENT_TYPES:
+            raise RuntimeError('(generate_signal_list) Unknown signal group... '
+                               'This should never happen. Something went REALLY wrong.')
 
         else:
-            signal_list_str += '\n-- ' + comment_dict[sig_type] + '\n'
+            signal_list_str += '\n-- ' + sig_decl_comments[sig_type] + '\n'
 
         # Generate signals for the current signal group
         for _, signal in sorted(signals.items()):
@@ -120,7 +129,7 @@ def generate_signal_list(conn_if, node_count, ident_level):
 
                 # For inter-router signals generate an entry for all ports
                 if sig_type == 'inter_router':
-                    for port in inter_router_ports:
+                    for port in INTER_ROUTER_SUFFICES:
                         signal_name_list.append(signal['name'] + port)
                 elif sig_type == 'ni_router':
                     signal_name_list.append(signal['name'] + '_ni')
@@ -134,7 +143,7 @@ def generate_signal_list(conn_if, node_count, ident_level):
                     for sig_name in signal_name_list:
                         signal_name_list_with_node.append(sig_name + '_' + str(node))
 
-                signal_list_str += process_lines_into_string(signal_name_list_with_node, group_size=group_size,
+                signal_list_str += process_lines_into_string(signal_name_list_with_node, group_size=SIGNAL_GROUP_SIZE,
                                                              prefix=ident(ident_level) + 'signal ',
                                                              suffix=' : ' + signal['type'] + ';\n',
                                                              block_end_newline=True)
@@ -227,11 +236,12 @@ def generate_port_maps(conn_if, component_list, node_count, ident_level, noc_siz
     return components_port_map_str
 
 
-def build_components(component_list, noc_size, ident_level):
+def build_component_decl(component_list, noc_size, ident_level):
 
     comment_dict = dict(
         ni_pe='-- Processing Element',
-        router='-- Router'
+        router='-- Router',
+        packet_injector='-- Packet Injector'
     )
 
     component_instantiation_list = [gen_multi_line_comment('Component Declarations')]
@@ -240,7 +250,8 @@ def build_components(component_list, noc_size, ident_level):
 
         # Insert comment describing the component
         if component_type not in comment_dict.keys():
-            raise ValueError('Unknown component type... This should never happen. Something went REALLY wrong.')
+            raise RuntimeError('(build_component_decl) Unknown component type (' + str(component_type) + ')... '
+                               'This should never happen. Something went REALLY wrong.')
         else:
             component_instantiation_list.append(comment_dict[component_type])
 
@@ -282,11 +293,12 @@ def build_components(component_list, noc_size, ident_level):
             generic_str = process_lines_into_string(generic_list)
 
         # Process Port
-        if component.get_port:
+        if component.get_port():
 
             port = component.get_port()
 
             # Measure maximum signal name length, for formatting purposes
+
             max_line_length = max([[len(line['name'])] for line in port])[0]
 
             port_list.append(ident(ident_level + 1) + 'port (')
@@ -309,7 +321,9 @@ def build_components(component_list, noc_size, ident_level):
             port_str = process_lines_into_string(port_list)
 
         else:
-            raise RuntimeError('Tried to read port values, but they were empty. Something\'s wrong...')
+            raise RuntimeError('(build_component_decl)Tried to read port values, but they were empty. '
+                               '(Component\'s name:)' + component.get_name()
+                               + 'Something\'s wrong...')
 
         # Build the component declaration
         component_list.append(generic_str)

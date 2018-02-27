@@ -16,3 +16,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+
+def generate_entity(conn_if, design_generation):
+
+    for connection_type, conn in sorted(conn_if.items()):
+        print(conn_if)
+        if 'general_' in connection_type:
+            print(conn)
+            for signal in conn.items():
+                print(signal)
+                signal_decl = signal['name'] + ': ' + signal['direction'] + signal['type']
+                print(signal_decl)

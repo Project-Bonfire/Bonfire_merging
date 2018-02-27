@@ -81,7 +81,6 @@ def check_file_format(yaml_config, config_file, exec_mode, top_level):
         raise RuntimeError('Ended up in the an unimplemented mode during \'check_file_format()\'!')
 
 
-# def read_config(config_dir, config_name):
 def read_config(config_file, exec_mode, top_level_conf, logger):
     """
     Recursively read a configuration from a YAML file
@@ -137,6 +136,4 @@ def read_config(config_file, exec_mode, top_level_conf, logger):
         logger.debug('Read config: ' + str(config))
 
     return config
-
-
 

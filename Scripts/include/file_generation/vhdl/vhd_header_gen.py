@@ -26,7 +26,7 @@ def generate_copyright_msg():
     :return: string containing the copyright message
     """
 
-    copyright_lines = ['Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand',
+    copyright_lines = ['Copyright (C) 2016 - 2018 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand',
                        '',
                        'This program is free software: you can redistribute it and/or modify',
                        'it under the terms of the GNU General Public License as published by',

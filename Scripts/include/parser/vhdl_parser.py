@@ -25,6 +25,7 @@ from Scripts.include.components.noc_component import NoCComponent
 TYPE_ROUTER = 'router'
 TYPE_NI_PE = 'ni_pe'
 TYPE_INJECTOR = 'packet_injector'
+TYPE_DESIGN = 'design'
 
 
 def process_signal_list(signals, vhd_file, logging, is_port):
@@ -102,7 +103,6 @@ def process_signal_list(signals, vhd_file, logging, is_port):
 
             logging.debug('Found signal: ' + signal_components['name'])
 
-    print(signal_list)
     return signal_list
 
 
@@ -114,11 +114,11 @@ def extract_entity_components(vhd_file, logging):
     :return:            [Name of the entity, generic signals, port signals]
     """
 
-    with open(vhd_file, 'r') as vhd:
+    with open(vhd_file, 'r') as vhdl_buffer:
         buffer = ''
 
         # Remove comments, replace newlines with space for easier processing
-        for line in vhd:
+        for line in vhdl_buffer:
             line = line.partition('--')[0].replace('\n', ' ').replace('\r', '')
             buffer = buffer + line
 
@@ -207,12 +207,13 @@ def extract_entity_components(vhd_file, logging):
             raise RuntimeError('Syntax error in ' + vhd_file
                                + ': Format error in port definition. (Check semicolons and brackets)')
 
-        logging.debug('Processing generic')
+        logging.debug('Processing generic:\n--------------------')
         generic_signal_list = process_signal_list(generic, vhd_file, logging, False)
 
-        logging.debug('Processing port')
+        logging.debug('Processing port\n--------------------')
         port_signal_list = process_signal_list(port, vhd_file, logging, True)
 
+        logging.debug('--------------------')
         return [entity_name, generic_signal_list, port_signal_list]
 
 
@@ -227,10 +228,16 @@ def parse_component(config, component_type, logging):
 
     # Parse the top module's VHDL in order to extract the interface
     component = NoCComponent()
-    router_top_module = os.path.join(RTL_DIR, config[component_type][-1])
-    logging.debug('Processing component\'s top module:' + router_top_module)
+
+    try:
+        top_module = os.path.join(RTL_DIR, config[component_type][-1])
+    except KeyError:
+        raise RuntimeError('(parse_component) Error parsing component: Invalid key: ' + str(component_type))
+
+    logging.debug('Processing component\'s top module:' + top_module)
+
     entity_name, generic_signal_list, port_signal_list = \
-        extract_entity_components(router_top_module, logging)
+        extract_entity_components(top_module, logging)
 
     # Apply parameters to the component
     component.set_name(entity_name)
@@ -240,31 +247,35 @@ def parse_component(config, component_type, logging):
     return component
 
 
-def parse_vhdl(config, logging):
+def parse_vhdl(config, design_generation, logging):
     """
     Finds top modules of each network component, parses the VHDL and returns all NoC components.
-    :param config:  Configuration extracted from the config file
-    :param logging: Logger instance
-    :return:        List of NoCComponent instances, each representing one component in the NoC
+    :param config:              (dict)   Configuration extracted from the config file
+    :param design_generation:   (bool)   if the file being processed is a design file
+    :param logging:             (Logger) For logging
+    :return: (list) List of NoCComponent instances, each representing one component in the NoC
     """
 
     # Assume the last file in the list to be the top module for the unit
-    network_components = dict()
+    components = dict()
 
-    # Router
-    logging.debug('Processing router')
-    network_components['router'] = \
-        parse_component(config, TYPE_ROUTER, logging)
+    if design_generation:
+        components['design'] = parse_component(config, TYPE_DESIGN, logging)
 
-    # NI / PE
-    logging.debug('Processing NI / PE')
-    network_components['ni_pe'] = network_components['ni_pe'] = \
-        parse_component(config, TYPE_NI_PE, logging)
+    else:
+        # Router
+        logging.debug('Processing router')
+        components['router'] = parse_component(config, TYPE_ROUTER, logging)
 
-    # Packet injector
-    if 'packet_injector' in config:
-        logging.debug('Processing packet injector')
-        network_components['packet_injector'] = \
-            network_components['injector'] = parse_component(config, TYPE_INJECTOR, logging)
+        # NI / PE
+        logging.debug('Processing NI / PE')
+        components['ni_pe'] = parse_component(config, TYPE_NI_PE, logging)
 
-    return network_components
+        # Packet injector
+        if 'packet_injector' in config:
+            logging.debug('Processing packet injector')
+            components['packet_injector'] = parse_component(config, TYPE_INJECTOR, logging)
+        # else:
+        #     components['packet_injector'] = NoCComponent()
+
+    return components

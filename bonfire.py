@@ -40,7 +40,6 @@ except ImportError as e:
 
 TRACE_FILE = LOG_DIR + '/error.log'
 
-
 def main():
     """
     Initializes the scripts and runs the actual program if initialization is successful
@@ -80,6 +79,7 @@ def main():
     ''' Read configurations'''
     config_file, exec_mode = extract_config_path(args)
 
+    logger.blue_info('Reading config files...')
     try:
         config = read_config(config_file, exec_mode, True, logger)
 
@@ -96,8 +96,9 @@ def main():
         return package.FAILURE
 
     ''' Parse the VHDL files for building the NW file and the TB '''
+    logger.blue_info('Parsing VHDL files...')
     try:
-        network_components = parse_vhdl(config, logger)
+        components = parse_vhdl(config, False, logger)
 
     except (FileNotFoundError, RuntimeError, ValueError) as err:
         print_msg(SEVERITY_ERROR, str(err))
@@ -106,12 +107,35 @@ def main():
     # Get the output directory
     output_dir = get_output_path(exec_mode, logger)
 
-    # Build the network
+    logger.blue_info('Building the design file...')
+    design_path = os.path.join(output_dir, 'design.vhd')
+
     try:
-        build_network(network_components, output_dir, args, logger)
+        build_vhdl(components, design_path, config, 'design', False, logger)
     except RuntimeError as err:
         print_msg(SEVERITY_ERROR, str(err))
         return package.FAILURE
+
+    logger.blue_info('Processing generated design...')
+
+    config['design'] = [design_path]
+
+    try:
+        design = parse_vhdl(config, True, logger)
+
+    except (FileNotFoundError, RuntimeError, ValueError) as err:
+        print_msg(SEVERITY_ERROR, str(err))
+        return package.FAILURE
+
+    if args.simulate:
+        tb_path = os.path.join(output_dir, 'design.vhd')
+        logger.blue_info('Building testbench...')
+
+        try:
+            build_vhdl(design, tb_path, config, 'testbench', True, logger)
+        except RuntimeError as err:
+            print_msg(SEVERITY_ERROR, str(err))
+            return package.FAILURE
 
     return package.SUCCESS
 
