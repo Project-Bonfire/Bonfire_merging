@@ -101,7 +101,7 @@ def process_signal_list(signals, vhd_file, logging, is_port):
             # Add processed signal to list
             signal_list.append(deepcopy(signal_components))
 
-            logging.debug('Found signal: ' + signal_components['name'])
+            logging.debug('\t\tFound signal: ' + signal_components['name'])
 
     return signal_list
 
@@ -207,10 +207,10 @@ def extract_entity_components(vhd_file, logging):
             raise RuntimeError('Syntax error in ' + vhd_file
                                + ': Format error in port definition. (Check semicolons and brackets)')
 
-        logging.debug('Processing generic:\n--------------------')
+        logging.debug('Processing generic:')
         generic_signal_list = process_signal_list(generic, vhd_file, logging, False)
 
-        logging.debug('Processing port\n--------------------')
+        logging.debug('Processing port')
         port_signal_list = process_signal_list(port, vhd_file, logging, True)
 
         logging.debug('--------------------')

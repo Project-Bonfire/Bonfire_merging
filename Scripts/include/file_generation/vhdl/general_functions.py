@@ -19,8 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import deepcopy
 
-CLK_RST_SIG_NAMES = ['clk', 'reset', 'clock', 'rst']
-
 
 def cx_rst_calculator(_, node_id, network_size):
     """

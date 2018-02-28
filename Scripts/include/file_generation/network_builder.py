@@ -132,7 +132,7 @@ def process_component_connections(components):
                 raise ValueError('Error connecting signal ' + signal['name'] + '. Signals does not exist on PE side.')
 
         else:
-            general_router_signals[signal['name'][:signal['name'].rfind('_')]] = deepcopy(signal)
+            general_router_signals[signal['name']] = deepcopy(signal)
 
     # Sort NI / PE signals based on connection
     for signal in ni_pe.get_port():
@@ -173,19 +173,21 @@ def build_vhdl(components, output_file, config, entity_name, design_generation, 
     logger.debug("Analyzing component connections")
 
     if design_generation:
-        conn_if = process_design_connections(components)
-    else:
         conn_if = process_component_connections(components)
+        design_name = 'design'
+    else:
+        conn_if = process_design_connections(components)
+        design_name = 'test_bench'
 
     # We will gather information needed for building the entity while we build the architecture
     logger.debug("Building file header")
     vhdl_file_sections['header'] = generate_file_header('Project Bonfire ' + entity_name.upper() + ' File', noc_size)
 
     logger.debug("Building file architecture")
-    vhdl_file_sections['arch'] = generate_file_arch('entity_name', noc_size, components, conn_if, ident_level, logger)
+    vhdl_file_sections['arch'] = generate_file_arch(design_name, noc_size, components, conn_if, ident_level, logger)
 
     logger.debug("Building Entity")
-    vhdl_file_sections['entity'] = generate_file_entity('entity_name', conn_if, design_generation, ident_level, logger)
+    vhdl_file_sections['entity'] = generate_file_entity(design_name, conn_if, design_generation, ident_level, logger)
 
     vhd_file_contents = vhdl_file_sections['header'] + vhdl_file_sections['entity'] + vhdl_file_sections['arch']
 

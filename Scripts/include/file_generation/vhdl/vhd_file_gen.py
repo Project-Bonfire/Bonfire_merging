@@ -54,14 +54,16 @@ def generate_file_header(file_descr, noc_size):
 # TODO: IMPLEMENT ENTITY GENERATION
 def generate_file_entity(entity_name, conn_if, design_generation, ident_level, logger):
 
-    port = vhd_entity_gen.generate_entity(conn_if, design_generation)
-    print(conn_if)
-    entity = 'entity ' + entity_name + ' is\n'
-    entity += '\tgeneric(' + '' + ');\n'
-    entity += '\tport(' + '' + ');\n'
-    entity += 'end ' + entity_name + ';\n\n'
+    port = vhd_entity_gen.generate_entity(conn_if, ident_level + 2, design_generation)
 
-    return entity
+    entity_structure = ['entity ' + entity_name + ' is\n',
+                        # ident(ident_level + 1) + 'generic(' + '' + ');\n',
+                        ident(ident_level + 1) + 'port(' + port + ');\n',
+                        'end ' + entity_name + ';\n\n']
+
+    entity_str = process_lines_into_string(entity_structure)
+
+    return entity_str
 
 
 def generate_file_arch(arch_name, noc_size, component_list, conn_if, ident_level, logger):

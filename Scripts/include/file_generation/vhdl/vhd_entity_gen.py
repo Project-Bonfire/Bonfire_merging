@@ -17,14 +17,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from Scripts.include.misc.package import *
 
-def generate_entity(conn_if, design_generation):
+
+def generate_entity(conn_if, ident_level, design_generation):
+
+    port_signal_list_str = 'clk : in std_logic;\n'
+    port_signal_list_str += ident(ident_level) + 'reset : in std_logic'
+
+    port_signal_list = list()
 
     for connection_type, conn in sorted(conn_if.items()):
-        print(conn_if)
         if 'general_' in connection_type:
-            print(conn)
-            for signal in conn.items():
-                print(signal)
-                signal_decl = signal['name'] + ': ' + signal['direction'] + signal['type']
-                print(signal_decl)
+            for signal in conn.values():
+                if signal['name'] not in CLK_RST_SIG_NAMES:
+                    signal_string = signal['name'] + ': ' + signal['direction'] + ' ' + signal['type']
+                    port_signal_list.append(signal_string)
+    port_signal_list_str += process_lines_into_string(sorted(port_signal_list),
+                                                      prefix=';\n' + ident(ident_level),
+                                                      suffix='')
+    return port_signal_list_str

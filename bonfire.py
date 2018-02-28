@@ -111,7 +111,7 @@ def main():
     design_path = os.path.join(output_dir, 'design.vhd')
 
     try:
-        build_vhdl(components, design_path, config, 'design', False, logger)
+        build_vhdl(components, design_path, config, 'design', True, logger)
     except RuntimeError as err:
         print_msg(SEVERITY_ERROR, str(err))
         return package.FAILURE
@@ -132,7 +132,7 @@ def main():
         logger.blue_info('Building testbench...')
 
         try:
-            build_vhdl(design, tb_path, config, 'testbench', True, logger)
+            build_vhdl(design, tb_path, config, 'testbench', False, logger)
         except RuntimeError as err:
             print_msg(SEVERITY_ERROR, str(err))
             return package.FAILURE
