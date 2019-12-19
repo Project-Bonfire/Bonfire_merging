@@ -1,0 +1,6 @@
+T__0=1
+STRING=2
+TEXT=3
+NUMBER=4
+WS=5
+'\n'=1

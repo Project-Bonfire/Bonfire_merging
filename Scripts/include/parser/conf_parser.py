@@ -1,7 +1,7 @@
 """
 Reads and processes the configuration files for designs
 
-Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
+Copyright (C) 2016 - 2019 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -72,13 +72,16 @@ def check_file_format(yaml_config, config_file, exec_mode, top_level):
 
         for list_name in list_of_elements:
             if list_name not in yaml_config or yaml_config[list_name] is None:
-                raise ValueError(list_name + ' not specified in loaded configuration! (' + config_file + ')')
+                raise ValueError(
+                    list_name + ' not specified in loaded configuration! (' + config_file + ')')
 
             elif list_name == 'simulation_config':
-                check_file_format(yaml_config['simulation_config'], config_file, exec_mode, False)
+                check_file_format(
+                    yaml_config['simulation_config'], config_file, exec_mode, False)
 
     else:
-        raise RuntimeError('Ended up in the an unimplemented mode during \'check_file_format()\'!')
+        raise RuntimeError(
+            'Ended up in the an unimplemented mode during \'check_file_format()\'!')
 
 
 def read_config(config_file, exec_mode, top_level_conf, logger):
@@ -86,7 +89,7 @@ def read_config(config_file, exec_mode, top_level_conf, logger):
     Recursively read a configuration from a YAML file
     :param config_file:     (str)  Path to the YAML configuration file to read
     :param exec_mode:       (int)  Mode of execution (simulate, synthesis, fpga)
-    :param top_level_conf:  (bool) If we are checking the top level if the main config file
+    :param top_level_conf:  (bool) If we are checking the top level in the main config file
                                    (while calling the function from outside of this function
                                    it should be always True)
     :param logger:          (bool) Logger instance
@@ -97,7 +100,7 @@ def read_config(config_file, exec_mode, top_level_conf, logger):
     files_to_add = list()
 
     with open(config_file) as yaml_file:
-        yaml_config = yaml.load(yaml_file)
+        yaml_config = yaml.load(yaml_file, Loader=yaml.SafeLoader)
 
         try:
             if top_level_conf:
@@ -131,9 +134,9 @@ def read_config(config_file, exec_mode, top_level_conf, logger):
                 config['files'] = files_to_add
 
         except TypeError:
-            raise ValueError('Configuration file seems to be empty?!?!?! (' + config_file + ')')
+            raise ValueError(
+                'Configuration file seems to be empty?!?!?! (' + config_file + ')')
 
-        logger.debug('Read config: ' + str(config))
+        logger.debug('Read config:\n' + logger.formatDict(config))
 
     return config
-

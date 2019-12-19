@@ -1,7 +1,7 @@
 """
 Parses VHDL files in order to extract the relevant parts for NW and TB generation
 
-Copyright (C) 2016 - 2017 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
+Copyright (C) 2016 - 2019 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -80,12 +80,16 @@ def process_signal_list(signals, vhd_file, logging, is_port):
                                + '. No direction is specified in port: ' + signal.strip())
 
         if in_location is None and out_location is not None:
-            signal_components['direction'] = type_declaration[:out_location.end()].strip()
-            signal_components['type'] = type_declaration[out_location.end():].strip()
+            signal_components['direction'] = type_declaration[:out_location.end()].strip(
+            )
+            signal_components['type'] = type_declaration[out_location.end()
+                                                                          :].strip()
 
         elif in_location is not None and out_location is None:
-            signal_components['direction'] = type_declaration[:in_location.end()].strip()
-            signal_components['type'] = type_declaration[in_location.end():].strip()
+            signal_components['direction'] = type_declaration[:in_location.end()].strip(
+            )
+            signal_components['type'] = type_declaration[in_location.end()
+                                                                         :].strip()
 
         elif in_location is not None and out_location is not None:
             raise RuntimeError('Syntax error in ' + vhd_file
@@ -148,7 +152,8 @@ def extract_entity_components(vhd_file, logging):
 
         # Find 'is'
         if is_location is None:
-            raise RuntimeError('Malformed entity declaration in ' + vhd_file + ' (cannot find \'is\')')
+            raise RuntimeError(
+                'Malformed entity declaration in ' + vhd_file + ' (cannot find \'is\')')
         else:
             is_span = is_location.span()
 
@@ -160,7 +165,8 @@ def extract_entity_components(vhd_file, logging):
         end_location = word_in_string('end', entity)
 
         if end_location is None:
-            raise RuntimeError('Malformed entity declaration in ' + vhd_file + ' (cannot find \'end\')')
+            raise RuntimeError(
+                'Malformed entity declaration in ' + vhd_file + ' (cannot find \'end\')')
         else:
             end_start = end_location.start()
 
@@ -173,7 +179,8 @@ def extract_entity_components(vhd_file, logging):
 
         # Extract generic and port
         if port_location is None:
-            raise RuntimeError('No port definition found int he entity of the file ' + vhd_file + '!')
+            raise RuntimeError(
+                'No port definition found int he entity of the file ' + vhd_file + '!')
 
         # Entity contains only port definition
         if generic_location is None:
@@ -189,12 +196,14 @@ def extract_entity_components(vhd_file, logging):
             # Port is defined first
             else:
                 generic = entity[port_location.end():].strip()
-                port = entity[port_location.end():generic_location.start()].strip()
+                port = entity[port_location.end(
+                ):generic_location.start()].strip()
 
         # Remove extra parenthesis and split signals
 
         try:
-            generic = generic[generic.find('(') + 1:generic.rfind(')')].split(';')
+            generic = generic[generic.find(
+                '(') + 1:generic.rfind(')')].split(';')
 
         except ValueError:
             raise RuntimeError('Syntax error in ' + vhd_file
@@ -208,7 +217,8 @@ def extract_entity_components(vhd_file, logging):
                                + ': Format error in port definition. (Check semicolons and brackets)')
 
         logging.debug('Processing generic:')
-        generic_signal_list = process_signal_list(generic, vhd_file, logging, False)
+        generic_signal_list = process_signal_list(
+            generic, vhd_file, logging, False)
 
         logging.debug('Processing port')
         port_signal_list = process_signal_list(port, vhd_file, logging, True)
@@ -232,7 +242,8 @@ def parse_component(config, component_type, logging):
     try:
         top_module = os.path.join(RTL_DIR, config[component_type][-1])
     except KeyError:
-        raise RuntimeError('(parse_component) Error parsing component: Invalid key: ' + str(component_type))
+        raise RuntimeError(
+            '(parse_component) Error parsing component: Invalid key: ' + str(component_type))
 
     logging.debug('Processing component\'s top module:' + top_module)
 
@@ -274,7 +285,8 @@ def parse_vhdl(config, design_generation, logging):
         # Packet injector
         if 'packet_injector' in config:
             logging.debug('Processing packet injector')
-            components['packet_injector'] = parse_component(config, TYPE_INJECTOR, logging)
+            components['packet_injector'] = parse_component(
+                config, TYPE_INJECTOR, logging)
         # else:
         #     components['packet_injector'] = NoCComponent()
 

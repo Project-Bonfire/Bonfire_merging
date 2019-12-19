@@ -3,7 +3,7 @@
 """
 The main simulation / synthesis script of the Bonfire project
 
-Copyright (C) 2016 - 2018 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
+Copyright (C) 2016 - 2019 Karl Janson, Siavoosh Payandeh Azad, Behrad Niazmand
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,10 +35,12 @@ try:
 
 except ImportError as e:
     yaml = None
-    print_msg(SEVERITY_ERROR, 'Module pyyaml is not installed. Run \'pip3 install pyyaml\' to install it')
+    print_msg(SEVERITY_ERROR,
+              'Module pyyaml is not installed. Run \'pip3 install pyyaml\' to install it')
     raise ImportError(e)
 
 TRACE_FILE = LOG_DIR + '/error.log'
+
 
 def main():
     """
@@ -46,98 +48,63 @@ def main():
     :return: 1 in case of an error, 0 otherwise
     """
 
-    ''' Parse command line arguments '''
-    try:
-        args = arg_parser.parse()
+    # Parse command line arguments
+    args = arg_parser.parse()
 
-    except RuntimeError as err:
-        print_msg(SEVERITY_ERROR, str(err))
-        return package.FAILURE
+    # Check if the temporary folder exists. If it does, clear it, if not, create it.
+    check_dir(package.LOG_DIR, True, args.debug)
 
-    ''' Check if the temporary folder exists. If it does, clear it, if not, create it. '''
-    try:
-        check_dir(package.LOG_DIR, True, args.debug)
-
-    except (OSError, ValueError, PermissionError, FileNotFoundError) as err:
-        print_msg(SEVERITY_ERROR, str(err))
-        return package.FAILURE
-
-    ''' Set up logging '''
+    # Set up logging
 
     try:
         sys.stderr = Logger(TRACE_FILE, sys.__stderr__)
 
         logger = ScreenLogger(args.debug,
-                              LOG_DIR + '/console_' + str(time.time()) + '.log',
+                              LOG_DIR + '/console_' +
+                              str(time.time()) + '.log',
                               LOG_DIR + '/bonfire_' + str(time.time()) + '.log')
         sys.stdout = logger
 
     except (PermissionError, FileNotFoundError) as err:
-        print_msg(SEVERITY_ERROR, 'Cannot open logfile: ' + str(err))
-        return package.FAILURE
+        raise FileNotFoundError('Cannot open logfile: ' + str(err))
 
-    ''' Read configurations'''
+    # Read configurations
     config_file, exec_mode = extract_config_path(args)
 
     logger.blue_info('Reading config files...')
+
     try:
         config = read_config(config_file, exec_mode, True, logger)
 
     except FileNotFoundError as err:
-        print_msg(SEVERITY_ERROR, 'Cannot open config file: ' + str(err))
-        return package.FAILURE
+        raise FileNotFoundError('Cannot open config file:' + str(err))
 
     except yaml.scanner.ScannerError as err:
-        print_msg(SEVERITY_ERROR, 'Syntax error while reading config file: \n' + str(err))
-        return package.FAILURE
+        raise FileNotFoundError(
+            'Syntax error while reading config file: \n' + str(err))
 
-    except (ValueError, RuntimeError) as err:
-        print_msg(SEVERITY_ERROR, str(err))
-        return package.FAILURE
-
-    ''' Parse the VHDL files for building the NW file and the TB '''
+    # Parse the VHDL files for building the NW file and the TB#
     logger.blue_info('Parsing VHDL files...')
-    try:
-        components = parse_vhdl(config, False, logger)
+    components = parse_vhdl(config, False, logger)
 
-    except (FileNotFoundError, RuntimeError, ValueError) as err:
-        print_msg(SEVERITY_ERROR, str(err))
-        return package.FAILURE
+    # # Get the output directory
+    # output_dir = get_output_path(exec_mode, logger)
 
-    # Get the output directory
-    output_dir = get_output_path(exec_mode, logger)
+    # logger.blue_info('Building the design file...')
+    # design_path = os.path.join(output_dir, 'design.vhd')
 
-    logger.blue_info('Building the design file...')
-    design_path = os.path.join(output_dir, 'design.vhd')
+    # build_vhdl(components, design_path, config, 'design', True, logger)
 
-    try:
-        build_vhdl(components, design_path, config, 'design', True, logger)
-    except RuntimeError as err:
-        print_msg(SEVERITY_ERROR, str(err))
-        return package.FAILURE
+    # logger.blue_info('Processing generated design...')
 
-    logger.blue_info('Processing generated design...')
+    # config['design'] = [design_path]
+    # design = parse_vhdl(config, True, logger)
 
-    config['design'] = [design_path]
+    # if args.simulate:
+    #     tb_path = os.path.join(output_dir, 'design.vhd')
+    #     logger.blue_info('Building testbench...')
 
-    try:
-        design = parse_vhdl(config, True, logger)
-
-    except (FileNotFoundError, RuntimeError, ValueError) as err:
-        print_msg(SEVERITY_ERROR, str(err))
-        return package.FAILURE
-
-    if args.simulate:
-        tb_path = os.path.join(output_dir, 'design.vhd')
-        logger.blue_info('Building testbench...')
-
-        try:
-            build_vhdl(design, tb_path, config, 'testbench', False, logger)
-        except RuntimeError as err:
-            print_msg(SEVERITY_ERROR, str(err))
-            return package.FAILURE
-
-    return package.SUCCESS
+    #     build_vhdl(design, tb_path, config, 'testbench', False, logger)
 
 
 """
@@ -146,10 +113,17 @@ Execution starts here
 if __name__ == '__main__':
 
     # Test for Python3
-    if sys.version_info[0] == 3:
-        return_code = main()
-        sys.exit(return_code)
-
-    else:
+    if sys.version_info[0] == 2:
         print_msg(SEVERITY_ERROR, 'This script needs Python version 3 to run!')
         sys.exit(package.FAILURE)
+
+    # Run the code
+
+    try:
+        main()
+
+    except (RuntimeError, OSError, ValueError, PermissionError, FileNotFoundError) as err:
+        print_msg(SEVERITY_ERROR, str(err))
+        sys.exit(package.FAILURE)
+
+sys.exit(package.SUCCESS)

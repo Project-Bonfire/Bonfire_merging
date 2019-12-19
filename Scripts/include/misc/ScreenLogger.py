@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import logging
+import pprint
 
 from Scripts.include.misc.package import *
 from Scripts.include.misc.Logger import Logger
@@ -40,6 +41,12 @@ class ScreenLogger(Logger):
         logging.basicConfig(filename=logfile, level=log_level)
 
         self.debug('Logging started...')
+
+    def formatDict(self, dictionary):
+        """
+        Return a nicely formatted version of dictionary
+        """
+        return pprint.pformat(dictionary)  + '\n'
 
     def info(self, msg, console=True):
         """
